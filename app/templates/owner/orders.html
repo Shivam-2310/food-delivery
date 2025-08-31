@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Orders - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">ORDERS</h1>
+    
+    <!-- FILTER OPTIONS -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('owner.orders') }}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <select name="restaurant_id" class="form-select">
+                            <option value="">All Restaurants</option>
+                            {% for r in restaurants %}
+                                <option value="{{ r.id }}" {% if restaurant_id == r.id|string %}selected{% endif %}>
+                                    {{ r.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="preparing" {% if status_filter == 'preparing' %}selected{% endif %}>Preparing</option>
+                            <option value="ready" {% if status_filter == 'ready' %}selected{% endif %}>Ready</option>
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">APPLY FILTERS</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- ORDERS TABLE -->
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ORDER #</th>
+                                <th>RESTAURANT</th>
+                                <th>CUSTOMER</th>
+                                <th>DATE</th>
+                                <th>TOTAL</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.restaurant.name }}</td>
+                                    <td>{{ order.customer.name }}</td>
+                                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>₹{{ '%.2f'|format(order.total_amount) }}</td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                            <span class="badge bg-warning">PENDING</span>
+                                        {% elif order.status == 'confirmed' %}
+                                            <span class="badge bg-info">CONFIRMED</span>
+                                        {% elif order.status == 'preparing' %}
+                                            <span class="badge bg-primary">PREPARING</span>
+                                        {% elif order.status == 'ready' %}
+                                            <span class="badge bg-success">READY</span>
+                                        {% elif order.status == 'completed' %}
+                                            <span class="badge bg-secondary">COMPLETED</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">CANCELLED</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('owner.order_detail', id=order.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> DETAILS
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+                    <h3>NO ORDERS FOUND</h3>
+                    <p class="mb-0">{% if status_filter or restaurant_id %}Try adjusting your filter criteria.{% else %}You haven't received any orders yet.{% endif %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

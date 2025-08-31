@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}My Preferences - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">MY PREFERENCES</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('customer.preferences') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">FAVORITE CUISINES</label>
+                            <div class="row g-3">
+                                {% for choice in form.favorite_cuisines %}
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            {{ choice(class="form-check-input") }}
+                                            {{ choice.label(class="form-check-label") }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">DIETARY RESTRICTIONS</label>
+                            <div class="row g-3">
+                                {% for choice in form.dietary_restrictions %}
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            {{ choice(class="form-check-input") }}
+                                            {{ choice.label(class="form-check-label") }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-muted">YOUR PREFERENCES HELP US PROVIDE PERSONALIZED RECOMMENDATIONS</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

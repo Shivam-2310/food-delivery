@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - JustEat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0 text-center">LOGIN TO JUSTEAT</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4 text-center">
+                        <div class="btn-group" role="group">
+                            {% for subfield in form.role %}
+                            <input type="radio" class="btn-check" name="role" id="{{ subfield.id }}" value="{{ subfield.data }}" 
+                                   autocomplete="off" {% if loop.index == 1 %}checked{% endif %}>
+                            <label class="btn btn-outline-primary" for="{{ subfield.id }}">{{ subfield.label }}</label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-floating mb-3">
+                        {{ form.username(class="form-control", placeholder="Username", id="username") }}
+                        {{ form.username.label(for="username") }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-floating mb-3 position-relative">
+                        {{ form.password(class="form-control", placeholder="Password", id="password") }}
+                        {{ form.password.label(for="password") }}
+                        <button type="button" class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 toggle-password" 
+                                data-target="password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        {{ form.remember(class="form-check-input", id="remember") }}
+                        {{ form.remember.label(class="form-check-label", for="remember") }}
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-3">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{{ url_for('auth.reset_password_request') }}">FORGOT YOUR PASSWORD?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <div class="alert alert-info">
+                <p class="mb-0">DEMO LOGIN INFORMATION:</p>
+                <hr>
+                <p class="mb-1"><strong>Customer:</strong> customer / password123</p>
+                <p class="mb-0"><strong>Restaurant Owner:</strong> owner / password123</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // TOGGLE BETWEEN CUSTOMER AND RESTAURANT OWNER LOGIN
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleOptions = document.querySelectorAll('input[name="role"]');
+        roleOptions.forEach(function(option) {
+            option.addEventListener('change', function() {
+                // YOU CAN ADD LOGIC TO CUSTOMIZE THE LOGIN FORM BASED ON SELECTED ROLE
+                console.log('Selected role:', this.value);
+            });
+        });
+    });
+</script>
+{% endblock %}

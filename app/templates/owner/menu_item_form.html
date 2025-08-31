@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ title }}</h1>
+        <a href="{{ url_for('owner.restaurant_menu', id=restaurant.id) }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> BACK TO MENU
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow">
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ form.name.label }}</label>
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ form.description.label }}</label>
+                            {{ form.description(class="form-control", rows=3) }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">{{ form.price.label }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    {{ form.price(class="form-control") }}
+                                </div>
+                                {% if form.price.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.price.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">{{ form.category.label }}</label>
+                                {{ form.category(class="form-select") }}
+                                {% if form.category.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">ITEM OPTIONS</label>
+                            <div class="form-check mb-2">
+                                {{ form.is_vegetarian(class="form-check-input") }}
+                                {{ form.is_vegetarian.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ form.is_special(class="form-check-input") }}
+                                {{ form.is_special.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check">
+                                {{ form.is_deal_of_day(class="form-check-input") }}
+                                {{ form.is_deal_of_day.label(class="form-check-label") }}
+                                <small class="d-block text-muted">Note: Only one item can be Deal of the Day</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">{{ form.image.label }}</label>
+                            {% if menu_item and menu_item.image_path %}
+                                <div class="mb-3">
+                                    <p class="text-muted">Current image:</p>
+                                    <img src="{{ url_for('static', filename='uploads/' + menu_item.image_path) }}" 
+                                         alt="Current menu item image" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            {% endif %}
+                            {{ form.image(class="form-control", accept="image/*") }}
+                            <small class="text-muted">UPLOAD AN IMAGE (OPTIONAL)</small>
+                            {% if form.image.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.image.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

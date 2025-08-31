@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Restaurant Owner Dashboard - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">RESTAURANT OWNER DASHBOARD</h1>
+    
+    <!-- DASHBOARD SUMMARY STATS -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h2 class="stat-value">{{ restaurants|length }}</h2>
+                    <p class="stat-label">YOUR RESTAURANTS</p>
+                    <a href="{{ url_for('owner.restaurants') }}" class="btn btn-sm btn-outline-primary">MANAGE</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h2 class="stat-value">{{ recent_orders|length }}</h2>
+                    <p class="stat-label">RECENT ORDERS</p>
+                    <a href="{{ url_for('owner.orders') }}" class="btn btn-sm btn-outline-primary">VIEW ALL</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-comment-alt"></i>
+                    </div>
+                    <h2 class="stat-value">{{ pending_feedback|length }}</h2>
+                    <p class="stat-label">PENDING FEEDBACK</p>
+                    <a href="{{ url_for('owner.feedback') }}" class="btn btn-sm btn-outline-primary">RESPOND</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- QUICK ACTIONS -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">QUICK ACTIONS</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{{ url_for('owner.restaurants') }}" class="btn btn-outline-primary w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-store fa-2x mb-2"></i>
+                                <span>MY RESTAURANTS</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-outline-success w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                                <span>ADD RESTAURANT</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{{ url_for('owner.orders') }}" class="btn btn-outline-primary w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                                <span>MANAGE ORDERS</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{{ url_for('owner.reports') }}" class="btn btn-outline-primary w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                <span>VIEW REPORTS</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RECENT ORDERS -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h4 class="mb-0">RECENT ORDERS</h4>
+                    <a href="{{ url_for('owner.orders') }}" class="btn btn-sm btn-outline-primary">VIEW ALL</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ORDER #</th>
+                                        <th>RESTAURANT</th>
+                                        <th>DATE</th>
+                                        <th>TOTAL</th>
+                                        <th>STATUS</th>
+                                        <th>ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                        <tr>
+                                            <td>#{{ order.id }}</td>
+                                            <td>{{ order.restaurant.name }}</td>
+                                            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td>${{ '%.2f'|format(order.total_amount) }}</td>
+                                            <td>
+                                                {% if order.status == 'pending' %}
+                                                    <span class="badge bg-warning">PENDING</span>
+                                                {% elif order.status == 'confirmed' %}
+                                                    <span class="badge bg-info">CONFIRMED</span>
+                                                {% elif order.status == 'preparing' %}
+                                                    <span class="badge bg-primary">PREPARING</span>
+                                                {% elif order.status == 'ready' %}
+                                                    <span class="badge bg-success">READY</span>
+                                                {% elif order.status == 'completed' %}
+                                                    <span class="badge bg-secondary">COMPLETED</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">CANCELLED</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('owner.order_detail', id=order.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> VIEW
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-0">NO RECENT ORDERS</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RESTAURANTS LIST -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h4 class="mb-0">YOUR RESTAURANTS</h4>
+                    <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-sm btn-success">
+                        <i class="fas fa-plus"></i> ADD NEW
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if restaurants %}
+                        <div class="row g-4">
+                            {% for restaurant in restaurants %}
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="row g-0">
+                                            <div class="col-md-4">
+                                                {% if restaurant.image_path %}
+                                                    <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
+                                                         class="img-fluid rounded-start h-100 w-100 object-fit-cover" alt="{{ restaurant.name }}">
+                                                {% else %}
+                                                    <img src="https://placehold.co/600x400?text=No+Image" 
+                                                         class="img-fluid rounded-start h-100 w-100 object-fit-cover" alt="No Image">
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-8">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">{{ restaurant.name }}</h5>
+                                                    <p class="card-text small text-muted mb-2">{{ restaurant.cuisine_type }} | {{ restaurant.location }}</p>
+                                                    <div class="d-flex gap-2 mt-3">
+                                                        <a href="{{ url_for('owner.restaurant_detail', id=restaurant.id) }}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i> VIEW
+                                                        </a>
+                                                        <a href="{{ url_for('owner.restaurant_menu', id=restaurant.id) }}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-utensils"></i> MENU
+                                                        </a>
+                                                        <a href="{{ url_for('owner.edit_restaurant', id=restaurant.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                            <i class="fas fa-edit"></i> EDIT
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="mb-3">YOU DON'T HAVE ANY RESTAURANTS YET.</p>
+                            <a href="{{ url_for('owner.restaurant_new') }}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> ADD YOUR FIRST RESTAURANT
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Review - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">REVIEW {{ entity_type|upper }}: {{ entity_name }}</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">YOUR RATING</label>
+                            <div class="star-rating">
+                                <div class="d-flex flex-row-reverse justify-content-center mb-2">
+                                    {% for i in [5, 4, 3, 2, 1] %}
+                                        <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" class="rating-input" {% if form.rating.data == i %}checked{% endif %}>
+                                        <label for="star{{ i }}" class="rating-label"></label>
+                                    {% endfor %}
+                                </div>
+                                <div class="text-center mb-4">
+                                    <span id="rating-display">
+                                        {% if form.rating.data %}
+                                            {{ form.rating.data }} {{ "STARS" if form.rating.data > 1 else "STAR" }}
+                                        {% else %}
+                                            SELECT RATING
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {% if form.rating.errors %}
+                                    <div class="invalid-feedback d-block text-center">
+                                        {% for error in form.rating.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">YOUR REVIEW (OPTIONAL)</label>
+                            {{ form.comment(rows=5, class="form-control", placeholder="Share your experience...") }}
+                            {% if form.comment.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.comment.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary">CANCEL</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // RATING DISPLAY UPDATE
+        var ratingInputs = document.querySelectorAll('.rating-input');
+        var ratingDisplay = document.getElementById('rating-display');
+        
+        ratingInputs.forEach(function(input) {
+            input.addEventListener('change', function() {
+                var value = this.value;
+                ratingDisplay.textContent = value + ' ' + (value > 1 ? 'STARS' : 'STAR');
+            });
+        });
+    });
+</script>
+{% endblock %}

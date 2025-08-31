@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">RESTAURANT REPORTS</h1>
+    
+    <!-- FILTER OPTIONS -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('owner.reports') }}">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label for="restaurant_id" class="form-label">Select Restaurant</label>
+                        <select id="restaurant_id" name="restaurant_id" class="form-select">
+                            <option value="">All Restaurants</option>
+                            {% for r in restaurants %}
+                                <option value="{{ r.id }}" {% if restaurant_id|string == r.id|string %}selected{% endif %}>
+                                    {{ r.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">VIEW REPORTS</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if restaurant_id %}
+        <!-- SUMMARY STATS -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h2 class="stat-value">{{ orders_count }}</h2>
+                        <p class="stat-label">TOTAL ORDERS</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <h2 class="stat-value">₹{{ '%.2f'|format(total_revenue) }}</h2>
+                        <p class="stat-label">TOTAL REVENUE</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h2 class="stat-value">{{ '%.1f'|format(avg_rating) }}</h2>
+                        <p class="stat-label">AVERAGE RATING</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TOP MENU ITEMS -->
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0">TOP ORDERED ITEMS</h4>
+            </div>
+            <div class="card-body">
+                {% if top_items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ITEM</th>
+                                    <th class="text-end">TOTAL ORDERS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in top_items %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td class="text-end">{{ item.total }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="mb-0">NO ORDER DATA AVAILABLE</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- CHARTS PLACEHOLDER -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h4 class="mb-0">ORDERS BY DAY</h4>
+                    </div>
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
+                        <p>CHART VISUALIZATION WOULD APPEAR HERE</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h4 class="mb-0">REVENUE TREND</h4>
+                    </div>
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                        <p>CHART VISUALIZATION WOULD APPEAR HERE</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card border-0 shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-pie fa-4x text-muted mb-3"></i>
+                <h3>SELECT A RESTAURANT TO VIEW REPORTS</h3>
+                <p class="mb-0">Choose a restaurant from the dropdown menu above to view detailed reports.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

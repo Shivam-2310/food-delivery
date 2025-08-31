@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="text-center mb-4">ABOUT JUSTEAT</h1>
+    
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1350&q=80" 
+                 alt="About JustEat" class="img-fluid rounded shadow-lg">
+        </div>
+        <div class="col-lg-6">
+            <h2 class="mb-3">OUR STORY</h2>
+            <p>JustEat was founded with a simple mission: to revolutionize the food ordering experience by making it quick, convenient, and enjoyable for everyone.</p>
+            <p>We believe that ordering food should be a seamless process that connects hungry customers with amazing restaurants, allowing them to discover new cuisines and enjoy their favorite meals without hassle.</p>
+            <p>Since our inception, we've been committed to building a platform that prioritizes user experience, empowering both customers and restaurant owners with intuitive tools and features.</p>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">OUR MISSION</h2>
+            <div class="card border-0 shadow">
+                <div class="card-body p-5 text-center">
+                    <p class="lead mb-0">
+                        "To transform food ordering into a delightful experience by connecting people with the food they love, 
+                        supporting local restaurants, and delivering exceptional service every step of the way."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">OUR VALUES</h2>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow text-center p-4">
+                <div class="card-body">
+                    <i class="fas fa-heart text-primary fa-3x mb-3"></i>
+                    <h4 class="card-title">CUSTOMER FOCUS</h4>
+                    <p class="card-text">We put our customers at the center of everything we do, continuously improving our platform based on their feedback and needs.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow text-center p-4">
+                <div class="card-body">
+                    <i class="fas fa-star text-primary fa-3x mb-3"></i>
+                    <h4 class="card-title">QUALITY</h4>
+                    <p class="card-text">We're committed to excellence in every aspect of our service, from the restaurants we partner with to the technology we build.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow text-center p-4">
+                <div class="card-body">
+                    <i class="fas fa-handshake text-primary fa-3x mb-3"></i>
+                    <h4 class="card-title">PARTNERSHIP</h4>
+                    <p class="card-text">We believe in building strong relationships with restaurants, empowering them with tools to grow their business and reach new customers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">OUR TEAM</h2>
+            <p class="text-center mb-5">JustEat is powered by a passionate team of food lovers, tech enthusiasts, and customer experience experts.</p>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow text-center">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" class="card-img-top" alt="Team Member">
+                <div class="card-body">
+                    <h5 class="card-title mb-1">ARYAN KAPOOR</h5>
+                    <p class="text-muted">CEO & Founder</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow text-center">
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" class="card-img-top" alt="Team Member">
+                <div class="card-body">
+                    <h5 class="card-title mb-1">NEHA GUPTA</h5>
+                    <p class="text-muted">CTO</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow text-center">
+                <img src="https://randomuser.me/api/portraits/men/67.jpg" class="card-img-top" alt="Team Member">
+                <div class="card-body">
+                    <h5 class="card-title mb-1">VIVEK PATEL</h5>
+                    <p class="text-muted">Head of Operations</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow text-center">
+                <img src="https://randomuser.me/api/portraits/women/17.jpg" class="card-img-top" alt="Team Member">
+                <div class="card-body">
+                    <h5 class="card-title mb-1">AISHWARYA REDDY</h5>
+                    <p class="text-muted">Customer Success Lead</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12 text-center">
+            <h2 class="mb-4">JOIN OUR JOURNEY</h2>
+            <p class="lead mb-4">Whether you're a food enthusiast looking for your next meal or a restaurant owner aiming to grow your business, we invite you to be part of the JustEat community.</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">GET STARTED</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

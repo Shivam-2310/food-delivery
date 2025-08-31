@@ -1,0 +1,279 @@
+/* 
+   JUSTEAT - MAIN STYLESHEET
+   MAIN COLORS:
+   - PRIMARY: #007BFF (BLUE)
+   - SECONDARY: #FF6B35 (ORANGE)
+   - ACCENT: #4CAF50 (GREEN)
+   - BACKGROUND: #F8F9FA (LIGHT GRAY)
+   - TEXT: #333333 (DARK GRAY)
+*/
+
+/* GLOBAL STYLES */
+:root {
+    --primary-color: #007BFF;
+    --secondary-color: #FF6B35;
+    --accent-color: #4CAF50;
+    --light-bg: #F8F9FA;
+    --dark-bg: #343A40;
+    --text-color: #333333;
+    --light-text: #FFFFFF;
+    --border-color: #DEE2E6;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    background-color: var(--light-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+}
+
+a {
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+/* NAVBAR CUSTOMIZATION */
+.navbar-dark {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+}
+
+/* BUTTONS */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #0069D9;
+    border-color: #0062CC;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-secondary:hover {
+    background-color: #E45A24;
+    border-color: #D54D1A;
+}
+
+.btn-success {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-success:hover {
+    background-color: #43A047;
+    border-color: #3D8B40;
+}
+
+/* CARD STYLES */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* RESTAURANT CARDS */
+.restaurant-card {
+    height: 100%;
+}
+
+.restaurant-card img {
+    height: 200px;
+    object-fit: cover;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.restaurant-card .badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+/* MENU ITEM CARDS */
+.menu-item-card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.menu-item-card img {
+    height: 150px;
+    object-fit: cover;
+}
+
+.menu-item-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+}
+
+/* CART & ORDER SUMMARY */
+.cart-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 0;
+}
+
+.order-summary {
+    background-color: #F1F1F1;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+/* FORMS */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+/* LOGIN/REGISTER FORMS */
+.auth-form {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    background-color: white;
+}
+
+.auth-form .form-floating {
+    margin-bottom: 15px;
+}
+
+/* STAR RATING */
+.rating {
+    color: #FFD700;
+    font-size: 24px;
+}
+
+.rating-input {
+    display: none;
+}
+
+.rating-label {
+    cursor: pointer;
+    padding: 5px;
+    float: right;
+    color: #ccc;
+}
+
+.rating-label:before {
+    content: '\2605';
+}
+
+.rating-input:checked ~ .rating-label {
+    color: #FFD700;
+}
+
+/* RESPONSIVE UTILITIES */
+@media (max-width: 767px) {
+    .hide-on-mobile {
+        display: none;
+    }
+    
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+/* BADGES AND TAGS */
+.badge-special {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.badge-deal {
+    background-color: #DC3545;
+    color: white;
+}
+
+.badge-mostly-ordered {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+/* DASHBOARD STATS */
+.stat-card {
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.stat-card .stat-label {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+/* FOOTER CUSTOMIZATION */
+footer a {
+    transition: var(--transition);
+}
+
+footer a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.social-icons a {
+    font-size: 1.5rem;
+    margin-right: 15px;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* TOAST NOTIFICATIONS */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+}

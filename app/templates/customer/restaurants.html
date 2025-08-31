@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Restaurants - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">RESTAURANTS</h1>
+    
+    <!-- SEARCH AND FILTER SECTION -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('customer.restaurants') }}" id="searchForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            {{ search_form.query(class="form-control", placeholder="Search", value=query) }}
+                            {{ search_form.query.label }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            {{ search_form.location(class="form-control", placeholder="Location", value=location) }}
+                            {{ search_form.location.label }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <div class="form-floating">
+                            {{ search_form.cuisine(class="form-select", value=cuisine) }}
+                            {{ search_form.cuisine.label }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <div class="form-floating">
+                            {{ search_form.vegetarian_only(class="form-select", value=vegetarian_only) }}
+                            {{ search_form.vegetarian_only.label }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2 d-flex align-items-center">
+                        {{ search_form.submit(class="btn btn-primary w-100") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- RESTAURANTS LISTING -->
+    <div class="row g-4">
+        {% if restaurants %}
+            {% for restaurant in restaurants %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 restaurant-card shadow">
+                        {% if restaurant.image_path %}
+                            <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
+                                 class="card-img-top" alt="{{ restaurant.name }}">
+                        {% else %}
+                            <img src="https://placehold.co/600x400?text=No+Image" 
+                                 class="card-img-top" alt="No Image">
+                        {% endif %}
+                        <div class="card-body">
+                            <h4 class="card-title mb-1">{{ restaurant.name }}</h4>
+                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }} | {{ restaurant.location }}</p>
+                            <div class="mb-3">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= restaurant.average_rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% elif i - 0.5 <= restaurant.average_rating %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <small class="text-muted">({{ restaurant.total_reviews }})</small>
+                            </div>
+                            <p class="card-text">{{ restaurant.description|truncate(100) }}</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" 
+                                   class="btn btn-primary">VIEW MENU</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="alert alert-info">
+                    <h4>NO RESTAURANTS FOUND</h4>
+                    <p class="mb-0">Try adjusting your search criteria.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

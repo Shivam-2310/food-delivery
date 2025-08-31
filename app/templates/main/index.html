@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}JustEat - Food Ordering App{% endblock %}
+
+{% block styles %}
+<style>
+    .hero {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                          url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 100px 0;
+        margin-bottom: 50px;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+    }
+    
+    .hero p {
+        font-size: 1.2rem;
+    }
+    
+    .feature-card {
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+    }
+    
+    .how-it-works {
+        position: relative;
+        padding: 60px 0;
+    }
+    
+    .how-it-works::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #f8f9fa;
+        transform: skewY(-3deg);
+        transform-origin: top right;
+        z-index: -1;
+    }
+    
+    .step-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .testimonial-card {
+        height: 100%;
+        padding: 30px;
+    }
+    
+    .testimonial-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="container text-center">
+        <h1 class="mb-4">ORDER DELICIOUS FOOD ONLINE</h1>
+        <p class="lead mb-5">Discover local restaurants and order your favorite meals for delivery or pickup</p>
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5">GET STARTED</a>
+        {% else %}
+            {% if current_user.is_customer() %}
+                <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary btn-lg px-5">BROWSE RESTAURANTS</a>
+            {% else %}
+                <a href="{{ url_for('owner.dashboard') }}" class="btn btn-primary btn-lg px-5">DASHBOARD</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section class="container mb-5">
+    <h2 class="text-center mb-5">WHY CHOOSE JUSTEAT?</h2>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card feature-card shadow text-center p-4">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3 class="card-title">WIDE SELECTION</h3>
+                    <p class="card-text">Choose from a variety of restaurants and cuisines that cater to all tastes and preferences.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card feature-card shadow text-center p-4">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="card-title">FAST ORDERING</h3>
+                    <p class="card-text">Our streamlined process makes ordering food quick and convenient for busy customers.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card feature-card shadow text-center p-4">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-thumbs-up"></i>
+                    </div>
+                    <h3 class="card-title">PERSONALIZED EXPERIENCE</h3>
+                    <p class="card-text">Get recommendations based on your preferences, dietary restrictions, and order history.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS SECTION -->
+<section class="how-it-works mb-5">
+    <div class="container">
+        <h2 class="text-center mb-5">HOW IT WORKS</h2>
+        
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mx-auto">1</div>
+                    <h4>BROWSE</h4>
+                    <p>Explore restaurants and menus to find exactly what you're craving</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mx-auto">2</div>
+                    <h4>ORDER</h4>
+                    <p>Add items to your cart and place your order with just a few clicks</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mx-auto">3</div>
+                    <h4>TRACK</h4>
+                    <p>Follow your order status in real-time as it's being prepared</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mx-auto">4</div>
+                    <h4>ENJOY</h4>
+                    <p>Receive your food and enjoy a delicious meal without the hassle</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- CALL TO ACTION -->
+<section class="container text-center mb-5">
+    <div class="p-5 bg-primary text-white rounded-3 shadow">
+        <h2 class="mb-3">READY TO ORDER?</h2>
+        <p class="lead mb-4">Start exploring restaurants near you and enjoy your favorite food today!</p>
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-5">LOGIN NOW</a>
+        {% else %}
+            {% if current_user.is_customer() %}
+                <a href="{{ url_for('customer.restaurants') }}" class="btn btn-light btn-lg px-5">BROWSE RESTAURANTS</a>
+            {% else %}
+                <a href="{{ url_for('owner.dashboard') }}" class="btn btn-light btn-lg px-5">GO TO DASHBOARD</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

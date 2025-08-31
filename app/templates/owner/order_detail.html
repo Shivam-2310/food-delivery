@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>ORDER #{{ order.id }}</h1>
+        <a href="{{ url_for('owner.orders') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> BACK TO ORDERS
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- ORDER DETAILS -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">ORDER INFORMATION</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Customer Name:</strong> {{ order.customer.name }}</p>
+                            <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p class="mb-1"><strong>Restaurant:</strong> {{ order.restaurant.name }}</p>
+                            <p class="mb-0"><strong>Total Amount:</strong> ₹{{ '%.2f'|format(order.total_amount) }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Order Status</h5>
+                                    <form method="POST" action="{{ url_for('owner.order_detail', id=order.id) }}">
+                                        {{ form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ form.status(class="form-select") }}
+                                        </div>
+                                        <div class="d-grid">
+                                            {{ form.submit(class="btn btn-primary") }}
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ORDER ITEMS -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">ORDER ITEMS</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ITEM</th>
+                                    <th class="text-center">PRICE</th>
+                                    <th class="text-center">QUANTITY</th>
+                                    <th class="text-end">SUBTOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items %}
+                                    <tr>
+                                        <td>{{ item.menu_item.name }}</td>
+                                        <td class="text-center">₹{{ '%.2f'|format(item.price) }}</td>
+                                        <td class="text-center">{{ item.quantity }}</td>
+                                        <td class="text-end">₹{{ '%.2f'|format(item.subtotal) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">TOTAL:</th>
+                                    <th class="text-end">₹{{ '%.2f'|format(order.total_amount) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- CUSTOMER INFORMATION -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">CUSTOMER INFORMATION</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Name:</strong> {{ order.customer.name }}</p>
+                    {% if order.customer.phone %}
+                        <p class="mb-1"><strong>Phone:</strong> {{ order.customer.phone }}</p>
+                    {% endif %}
+                    {% if order.customer.address %}
+                        <p class="mb-0"><strong>Address:</strong> {{ order.customer.address }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- ORDER STATUS HISTORY -->
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">STATUS TIMELINE</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="fas fa-shopping-cart text-success me-2"></i>
+                                Order Placed
+                            </span>
+                            <span class="text-muted small">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </li>
+                        
+                        {% if order.status != 'pending' %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Order Confirmed
+                                </span>
+                                <span class="text-muted small">-</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% if order.status in ['preparing', 'ready', 'completed'] %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-utensils text-success me-2"></i>
+                                    Preparing Order
+                                </span>
+                                <span class="text-muted small">-</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% if order.status in ['ready', 'completed'] %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-check-double text-success me-2"></i>
+                                    Ready for Pickup
+                                </span>
+                                <span class="text-muted small">-</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% if order.status == 'completed' %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-flag-checkered text-success me-2"></i>
+                                    Order Completed
+                                </span>
+                                <span class="text-muted small">-</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% if order.status == 'cancelled' %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-times-circle text-danger me-2"></i>
+                                    Order Cancelled
+                                </span>
+                                <span class="text-muted small">-</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

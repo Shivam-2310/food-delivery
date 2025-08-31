@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu - {{ restaurant.name }} - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>MENU: {{ restaurant.name }}</h1>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('owner.restaurant_detail', id=restaurant.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> BACK TO RESTAURANT
+            </a>
+            <a href="{{ url_for('owner.new_menu_item', id=restaurant.id) }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> ADD NEW ITEM
+            </a>
+        </div>
+    </div>
+    
+    <!-- MENU CATEGORIES -->
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="list-group sticky-top" style="top: 20px;">
+                <div class="list-group-item bg-primary text-white fw-bold">
+                    CATEGORIES
+                </div>
+                {% for category, items in menu_by_category.items() %}
+                    <a href="#{{ category }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        {{ category|replace('_', ' ')|title }}
+                        <span class="badge bg-primary rounded-pill">{{ items|length }}</span>
+                    </a>
+                {% else %}
+                    <div class="list-group-item">
+                        No categories yet
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-4">
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <h5 class="mb-3">MENU LEGEND</h5>
+                        <div class="mb-2 d-flex align-items-center">
+                            <span class="badge badge-special me-2">TODAY'S SPECIAL</span>
+                            <small>Featured items</small>
+                        </div>
+                        <div class="mb-2 d-flex align-items-center">
+                            <span class="badge badge-deal me-2">DEAL OF THE DAY</span>
+                            <small>Daily special deal</small>
+                        </div>
+                        <div class="mb-0 d-flex align-items-center">
+                            <span class="badge badge-mostly-ordered me-2">MOSTLY ORDERED</span>
+                            <small>Popular items (>10 orders today)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            {% if menu_by_category %}
+                {% for category, items in menu_by_category.items() %}
+                    <div id="{{ category }}" class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <h3 class="mb-0">{{ category|replace('_', ' ')|upper }}</h3>
+                        </div>
+                        <div class="row g-4">
+                            {% for item in items %}
+                                <div class="col-md-6">
+                                    <div class="card h-100 menu-item-card shadow-sm">
+                                        {% if item.is_mostly_ordered %}
+                                            <div class="menu-item-badge badge bg-success">MOSTLY ORDERED</div>
+                                        {% elif item.is_special %}
+                                            <div class="menu-item-badge badge bg-primary">TODAY'S SPECIAL</div>
+                                        {% elif item.is_deal_of_day %}
+                                            <div class="menu-item-badge badge bg-danger">DEAL OF THE DAY</div>
+                                        {% endif %}
+                                        
+                                        {% if item.image_path %}
+                                            <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                                                 class="card-img-top" alt="{{ item.name }}">
+                                        {% else %}
+                                            <img src="https://placehold.co/600x400?text=No+Image" 
+                                                 class="card-img-top" alt="No Image">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <h5 class="card-title mb-1">{{ item.name }}</h5>
+                                                {% if item.is_vegetarian %}
+                                                    <span class="badge bg-success"><i class="fas fa-leaf"></i> VEG</span>
+                                                {% endif %}
+                                            </div>
+                                            <p class="card-text small text-muted mb-3">{{ item.description }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="fw-bold">₹{{ '%.2f'|format(item.price) }}</div>
+                                                <div class="d-flex gap-2">
+                                                    <a href="{{ url_for('owner.edit_menu_item', id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-edit"></i> EDIT
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- DELETE MODAL -->
+                                    <div class="modal fade" id="deleteModal{{ item.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ item.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ item.id }}">CONFIRM DELETE</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>ARE YOU SURE YOU WANT TO DELETE "{{ item.name }}"?</p>
+                                                    <p class="text-danger mb-0">THIS ACTION CANNOT BE UNDONE!</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">CANCEL</button>
+                                                    <form action="{{ url_for('owner.delete_menu_item', id=item.id) }}" method="POST">
+                                                        <button type="submit" class="btn btn-danger">DELETE</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card border-0 shadow">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
+                        <h3>NO MENU ITEMS YET</h3>
+                        <p class="mb-4">START ADDING ITEMS TO YOUR MENU.</p>
+                        <a href="{{ url_for('owner.new_menu_item', id=restaurant.id) }}" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus"></i> ADD YOUR FIRST MENU ITEM
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

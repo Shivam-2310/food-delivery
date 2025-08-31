@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Dashboard - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">WELCOME, {{ current_user.customer_profile.name }}</h1>
+    
+    <!-- DASHBOARD SUMMARY STATS -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h2 class="stat-value">{{ recent_orders|length }}</h2>
+                    <p class="stat-label">RECENT ORDERS</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h2 class="stat-value">{{ favorites|length }}</h2>
+                    <p class="stat-label">FAVORITE RESTAURANTS</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h2 class="stat-value">{{ recommended|length }}</h2>
+                    <p class="stat-label">RECOMMENDATIONS</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RECENT ORDERS -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h4 class="mb-0">RECENT ORDERS</h4>
+                    <a href="{{ url_for('customer.orders') }}" class="btn btn-sm btn-outline-primary">VIEW ALL</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ORDER #</th>
+                                        <th>RESTAURANT</th>
+                                        <th>DATE</th>
+                                        <th>TOTAL</th>
+                                        <th>STATUS</th>
+                                        <th>ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                        <tr>
+                                            <td>#{{ order.id }}</td>
+                                            <td>{{ order.restaurant.name }}</td>
+                                            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td>${{ '%.2f'|format(order.total_amount) }}</td>
+                                            <td>
+                                                {% if order.status == 'pending' %}
+                                                    <span class="badge bg-warning">PENDING</span>
+                                                {% elif order.status == 'confirmed' %}
+                                                    <span class="badge bg-info">CONFIRMED</span>
+                                                {% elif order.status == 'preparing' %}
+                                                    <span class="badge bg-primary">PREPARING</span>
+                                                {% elif order.status == 'ready' %}
+                                                    <span class="badge bg-success">READY</span>
+                                                {% elif order.status == 'completed' %}
+                                                    <span class="badge bg-secondary">COMPLETED</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">CANCELLED</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('customer.order_detail', id=order.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-eye"></i> DETAILS
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-3">YOU HAVEN'T PLACED ANY ORDERS YET.</p>
+                            <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary">BROWSE RESTAURANTS</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAVORITE RESTAURANTS -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h4 class="mb-0">FAVORITE RESTAURANTS</h4>
+                    <a href="{{ url_for('customer.restaurants') }}" class="btn btn-sm btn-outline-primary">EXPLORE MORE</a>
+                </div>
+                <div class="card-body">
+                    {% if favorites %}
+                        <div class="row">
+                            {% for restaurant in favorites %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 restaurant-card">
+                                        {% if restaurant.image_path %}
+                                            <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
+                                                 class="card-img-top" alt="{{ restaurant.name }}">
+                                        {% else %}
+                                            <img src="https://placehold.co/600x400?text=No+Image" 
+                                                 class="card-img-top" alt="No Image">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-1">{{ restaurant.name }}</h5>
+                                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }}</p>
+                                            <div class="mb-2">
+                                                {% for i in range(1, 6) %}
+                                                    {% if i <= restaurant.average_rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% elif i - 0.5 <= restaurant.average_rating %}
+                                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <small class="text-muted">({{ restaurant.total_reviews }})</small>
+                                            </div>
+                                            <p class="card-text small">{{ restaurant.description|truncate(100) }}</p>
+                                            <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" class="btn btn-sm btn-primary">VIEW MENU</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-3">YOU DON'T HAVE ANY FAVORITE RESTAURANTS YET.</p>
+                            <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary">BROWSE RESTAURANTS</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RECOMMENDED FOR YOU -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h4 class="mb-0">RECOMMENDED FOR YOU</h4>
+                    <a href="{{ url_for('customer.preferences') }}" class="btn btn-sm btn-outline-primary">UPDATE PREFERENCES</a>
+                </div>
+                <div class="card-body">
+                    {% if recommended %}
+                        <div class="row">
+                            {% for restaurant in recommended %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 restaurant-card">
+                                        {% if restaurant.image_path %}
+                                            <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
+                                                 class="card-img-top" alt="{{ restaurant.name }}">
+                                        {% else %}
+                                            <img src="https://placehold.co/600x400?text=No+Image" 
+                                                 class="card-img-top" alt="No Image">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-1">{{ restaurant.name }}</h5>
+                                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }}</p>
+                                            <div class="mb-2">
+                                                {% for i in range(1, 6) %}
+                                                    {% if i <= restaurant.average_rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% elif i - 0.5 <= restaurant.average_rating %}
+                                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <small class="text-muted">({{ restaurant.total_reviews }})</small>
+                                            </div>
+                                            <p class="card-text small">{{ restaurant.description|truncate(100) }}</p>
+                                            <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" class="btn btn-sm btn-primary">VIEW MENU</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-3">UPDATE YOUR PREFERENCES TO GET PERSONALIZED RECOMMENDATIONS.</p>
+                            <a href="{{ url_for('customer.preferences') }}" class="btn btn-primary">UPDATE PREFERENCES</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

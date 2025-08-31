@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>ORDER #{{ order.id }}</h1>
+        <a href="{{ url_for('customer.orders') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> BACK TO ORDERS
+        </a>
+    </div>
+    
+    <!-- ORDER STATUS -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h4 class="mb-4">ORDER STATUS</h4>
+                    <div class="position-relative mb-4">
+                        <div class="progress" style="height: 4px;">
+                            {% if order.status == 'cancelled' %}
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 100%;"></div>
+                            {% else %}
+                                {% set progress = {
+                                    'pending': 20,
+                                    'confirmed': 40,
+                                    'preparing': 60,
+                                    'ready': 80,
+                                    'completed': 100
+                                } %}
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ progress[order.status] }}%;"></div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-2">
+                            <div class="text-center">
+                                <div class="rounded-circle {% if order.status != 'cancelled' %}bg-primary{% else %}bg-secondary{% endif %} text-white" style="width: 30px; height: 30px; line-height: 30px;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="mt-1">Pending</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="rounded-circle {% if order.status != 'cancelled' and order.status != 'pending' %}bg-primary{% else %}bg-secondary{% endif %} text-white" style="width: 30px; height: 30px; line-height: 30px;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="mt-1">Confirmed</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="rounded-circle {% if order.status != 'cancelled' and order.status not in ['pending', 'confirmed'] %}bg-primary{% else %}bg-secondary{% endif %} text-white" style="width: 30px; height: 30px; line-height: 30px;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="mt-1">Preparing</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="rounded-circle {% if order.status != 'cancelled' and order.status not in ['pending', 'confirmed', 'preparing'] %}bg-primary{% else %}bg-secondary{% endif %} text-white" style="width: 30px; height: 30px; line-height: 30px;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="mt-1">Ready</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="rounded-circle {% if order.status == 'completed' %}bg-primary{% else %}bg-secondary{% endif %} text-white" style="width: 30px; height: 30px; line-height: 30px;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="mt-1">Completed</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if order.status == 'cancelled' %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i> THIS ORDER HAS BEEN CANCELLED.
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-light border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">ORDER INFORMATION</h5>
+                            <p class="mb-1"><strong>Date:</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p class="mb-1"><strong>Status:</strong> {{ order.status_display }}</p>
+                            <p class="mb-1"><strong>Restaurant:</strong> {{ order.restaurant.name }}</p>
+                            <p class="mb-0"><strong>Total:</strong> ₹{{ '%.2f'|format(order.total_amount) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ORDER ITEMS -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header bg-white py-3">
+            <h4 class="mb-0">ORDER ITEMS</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ITEM</th>
+                            <th class="text-center">PRICE</th>
+                            <th class="text-center">QUANTITY</th>
+                            <th class="text-end">SUBTOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                            <tr>
+                                <td>{{ item.menu_item.name }}</td>
+                                <td class="text-center">₹{{ '%.2f'|format(item.price) }}</td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-end">₹{{ '%.2f'|format(item.subtotal) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">TOTAL:</th>
+                            <th class="text-end">₹{{ '%.2f'|format(order.total_amount) }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ACTIONS -->
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <h4 class="mb-3">ACTIONS</h4>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('customer.add_review', type='restaurant', id=order.restaurant.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-star"></i> REVIEW RESTAURANT
+                </a>
+                {% if order.status == 'completed' %}
+                    <a href="{{ url_for('customer.restaurant_detail', id=order.restaurant.id) }}" class="btn btn-primary">
+                        <i class="fas fa-utensils"></i> ORDER AGAIN
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

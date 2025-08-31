@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">MY PROFILE</h1>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">ACCOUNT INFORMATION</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('customer.profile') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.username(class="form-control", placeholder="Username", id="username") }}
+                                    {{ form.username.label(for="username") }}
+                                    {% if form.username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.username.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.email(class="form-control", placeholder="Email", id="email") }}
+                                    {{ form.email.label(for="email") }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    {{ form.name(class="form-control", placeholder="Full Name", id="name") }}
+                                    {{ form.name.label(for="name") }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.phone(class="form-control", placeholder="Phone", id="phone") }}
+                                    {{ form.phone.label(for="phone") }}
+                                    {% if form.phone.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.phone.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-floating mb-3">
+                                    {{ form.address(class="form-control", placeholder="Address", id="address", style="height: 100px") }}
+                                    {{ form.address.label(for="address") }}
+                                    {% if form.address.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.address.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">PREFERENCES</h5>
+                            <p class="card-text">Update your favorite cuisines and dietary restrictions to get personalized recommendations.</p>
+                            <a href="{{ url_for('customer.preferences') }}" class="btn btn-outline-primary">MANAGE PREFERENCES</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card border-0 shadow h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">PASSWORD MANAGEMENT</h5>
+                            <p class="card-text">Need to reset your password? Click below to request a password reset.</p>
+                            <a href="{{ url_for('auth.reset_password_request') }}" class="btn btn-outline-primary">RESET PASSWORD</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

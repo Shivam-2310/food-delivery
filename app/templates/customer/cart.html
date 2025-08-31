@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}My Cart - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">MY CART</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- CART ITEMS -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">CART ITEMS</h4>
+                </div>
+                <div class="card-body">
+                    {% if cart_items %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ITEM</th>
+                                        <th class="text-center">PRICE</th>
+                                        <th class="text-center">QUANTITY</th>
+                                        <th class="text-end">SUBTOTAL</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart_items %}
+                                        <tr>
+                                            <td>{{ item.name }}</td>
+                                            <td class="text-center">₹{{ '%.2f'|format(item.price) }}</td>
+                                            <td class="text-center">
+                                                <form method="POST" action="{{ url_for('customer.update_cart_item', item_id=item.id) }}" 
+                                                      class="d-flex justify-content-center quantity-control">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary quantity-decrease">-</button>
+                                                    <input type="number" name="quantity" value="{{ item.quantity }}" 
+                                                           min="1" max="10" class="form-control form-control-sm text-center mx-2" 
+                                                           style="width: 60px;">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary quantity-increase">+</button>
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary ms-2">UPDATE</button>
+                                                </form>
+                                            </td>
+                                            <td class="text-end">₹{{ '%.2f'|format(item.subtotal) }}</td>
+                                            <td class="text-end">
+                                                <form method="POST" action="{{ url_for('customer.update_cart_item', item_id=item.id) }}">
+                                                    <input type="hidden" name="quantity" value="0">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="{{ url_for('customer.clear_cart') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-trash"></i> CLEAR CART
+                            </a>
+                            <a href="{{ url_for('customer.restaurant_detail', id=restaurant_id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus"></i> ADD MORE ITEMS
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                            <h3>YOUR CART IS EMPTY</h3>
+                            <p class="mb-4">Add items from a restaurant to start your order.</p>
+                            <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary">BROWSE RESTAURANTS</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- ORDER SUMMARY -->
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">ORDER SUMMARY</h4>
+                </div>
+                <div class="card-body">
+                    {% if cart_items %}
+                        <div class="mb-4">
+                            <h5 class="mb-3">RESTAURANT</h5>
+                            <p class="mb-0">{{ restaurant_name }}</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5 class="mb-3">SUMMARY</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>₹{{ '%.2f'|format(total) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax:</span>
+                                <span>₹0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total:</span>
+                                <span>₹{{ '%.2f'|format(total) }}</span>
+                            </div>
+                        </div>
+                        
+                        <form method="POST" action="{{ url_for('customer.cart') }}">
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">PLACE ORDER</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-0">Add items to your cart to see the order summary.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
