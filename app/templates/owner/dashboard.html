@@ -42,7 +42,7 @@
                     </div>
                     <h2 class="stat-value">{{ pending_feedback|length }}</h2>
                     <p class="stat-label">PENDING FEEDBACK</p>
-                    <a href="{{ url_for('owner.feedback') }}" class="btn btn-sm btn-outline-primary">RESPOND</a>
+                    <a href="{{ url_for('owner.feedback') }}" class="btn btn-sm btn-outline-primary">VIEW ALL</a>
                 </div>
             </div>
         </div>
@@ -115,7 +115,7 @@
                                             <td>#{{ order.id }}</td>
                                             <td>{{ order.restaurant.name }}</td>
                                             <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                            <td>${{ '%.2f'|format(order.total_amount) }}</td>
+                                            <td>₹{{ '%.2f'|format(order.total_amount) }}</td>
                                             <td>
                                                 {% if order.status == 'pending' %}
                                                     <span class="badge bg-warning">PENDING</span>

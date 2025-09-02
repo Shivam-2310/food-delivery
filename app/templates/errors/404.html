@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Page Not Found - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="error-container">
+                <h1 class="display-1 text-danger">404</h1>
+                <h2 class="mb-4">PAGE NOT FOUND</h2>
+                <p class="lead mb-5">We couldn't find the page you were looking for. It might have been moved or deleted.</p>
+                <img src="{{ url_for('static', filename='images/404.svg') }}" alt="Page Not Found" class="img-fluid mb-5" style="max-height: 300px;">
+                <div>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home me-2"></i> GO TO HOME PAGE
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

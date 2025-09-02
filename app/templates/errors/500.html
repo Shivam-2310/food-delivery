@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Server Error - JustEat{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="error-container">
+                <h1 class="display-1 text-danger">500</h1>
+                <h2 class="mb-4">SERVER ERROR</h2>
+                <p class="lead mb-5">Something went wrong on our end. Our team has been notified and is working to fix the issue.</p>
+                <img src="{{ url_for('static', filename='images/500.svg') }}" alt="Server Error" class="img-fluid mb-5" style="max-height: 300px;">
+                <div>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home me-2"></i> GO TO HOME PAGE
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

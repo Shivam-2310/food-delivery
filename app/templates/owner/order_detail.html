@@ -101,6 +101,48 @@
                 </div>
             </div>
             
+            <!-- CUSTOMER FEEDBACK (ONLY SHOWN FOR COMPLETED ORDERS) -->
+            {% if order.status == 'completed' %}
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h4 class="mb-0">CUSTOMER FEEDBACK</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if existing_feedback %}
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Rating:</strong>
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= existing_feedback.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </p>
+                                <p class="mb-3"><strong>Feedback:</strong><br>{{ existing_feedback.message }}</p>
+                                
+                                {% if existing_feedback.response %}
+                                    <div class="alert alert-info">
+                                        <h5>YOUR RESPONSE:</h5>
+                                        <p class="mb-0">{{ existing_feedback.response }}</p>
+                                    </div>
+                                {% else %}
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('owner.respond_to_feedback', id=existing_feedback.id, from_order=1) }}" class="btn btn-primary">
+                                            <i class="fas fa-reply"></i> RESPOND TO FEEDBACK
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-secondary">
+                                <p class="mb-0">The customer hasn't provided feedback for this order yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
             <!-- ORDER STATUS HISTORY -->
             <div class="card border-0 shadow">
                 <div class="card-header bg-white py-3">

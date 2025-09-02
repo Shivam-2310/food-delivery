@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .text-500 { font-family: Arial, sans-serif; font-size: 72px; font-weight: bold; fill: #dc3545; }
+    .pot { fill: #f8f9fa; stroke: #6c757d; stroke-width: 3; }
+    .pot-handle { fill: none; stroke: #6c757d; stroke-width: 6; }
+    .steam { fill: none; stroke: #6c757d; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 5, 10; }
+    .fire { fill: #dc3545; }
+  </style>
+  
+  <!-- Cooking pot -->
+  <path d="M150 150 L350 150 L370 250 L130 250 Z" class="pot" />
+  <ellipse cx="250" cy="150" rx="100" ry="20" class="pot" />
+  
+  <!-- Pot handle -->
+  <path d="M150 170 Q120 180 120 200" class="pot-handle" />
+  <path d="M350 170 Q380 180 380 200" class="pot-handle" />
+  
+  <!-- Steam -->
+  <path d="M200 130 Q190 110 210 100 Q230 90 220 70" class="steam" />
+  <path d="M250 130 Q240 100 260 90 Q280 80 270 60" class="steam" />
+  <path d="M300 130 Q290 110 310 100 Q330 90 320 70" class="steam" />
+  
+  <!-- Fire -->
+  <path d="M200 270 Q230 240 250 270 Q270 240 300 270 L300 290 L200 290 Z" class="fire" />
+  
+  <!-- 500 text -->
+  <text x="250" y="80" class="text-500" text-anchor="middle">500</text>
+</svg>

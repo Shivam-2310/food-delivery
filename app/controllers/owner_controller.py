@@ -52,10 +52,11 @@ def dashboard():
     ).order_by(Order.created_at.desc()).limit(10).all()
     
     # GET PENDING FEEDBACK
-    pending_feedback = Feedback.query.join(Order, Feedback.customer_id == Order.customer_id)\
-        .join(Restaurant, Order.restaurant_id == Restaurant.id)\
-        .filter(Restaurant.owner_id == current_user.owner_profile.id, Feedback.is_resolved == False)\
-        .distinct().all()
+    pending_feedback = Feedback.query\
+        .join(Order, Feedback.order_id == Order.id)\
+        .filter(Order.restaurant_id.in_([r.id for r in Restaurant.query.filter_by(owner_id=current_user.owner_profile.id)]),
+                Feedback.is_resolved == False)\
+        .all()
     
     return render_template('owner/dashboard.html',
                            restaurants=restaurants,
@@ -122,13 +123,18 @@ def restaurant_detail(id):
     # GET MENU ITEMS GROUPED BY CATEGORY
     menu_by_category = restaurant.get_menu_by_category()
     
-    # GET REVIEWS
+    # GET REVIEWS AND FEEDBACK
     reviews = restaurant.reviews.order_by(Review.created_at.desc()).all()
+    
+    # GET ORDER FEEDBACK FOR THIS RESTAURANT
+    from app.models.feedback import Feedback
+    feedback_list = Feedback.query.filter_by(restaurant_id=restaurant.id).order_by(Feedback.created_at.desc()).all()
     
     return render_template('owner/restaurant_detail.html',
                            restaurant=restaurant,
                            menu_by_category=menu_by_category,
-                           reviews=reviews)
+                           reviews=reviews,
+                           feedback_list=feedback_list)
 
 @bp.route('/restaurant/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -450,9 +456,14 @@ def order_detail(id):
     elif request.method == 'GET':
         form.status.data = order.status
     
+    # EXPLICITLY LOAD FEEDBACK FOR THIS ORDER
+    from app.models.feedback import Feedback
+    feedback = Feedback.query.filter_by(order_id=order.id).first()
+    
     return render_template('owner/order_detail.html', 
                            order=order,
-                           form=form)
+                           form=form,
+                           existing_feedback=feedback)
 
 @bp.route('/reports')
 @login_required
@@ -515,10 +526,9 @@ def feedback():
     FEEDBACK MANAGEMENT ROUTE
     """
     # GET FEEDBACK FOR OWNER'S RESTAURANTS
-    feedback_list = Feedback.query.join(Order, Feedback.customer_id == Order.customer_id)\
-        .join(Restaurant, Order.restaurant_id == Restaurant.id)\
-        .filter(Restaurant.owner_id == current_user.owner_profile.id)\
-        .distinct()\
+    feedback_list = Feedback.query\
+        .join(Order, Feedback.order_id == Order.id)\
+        .filter(Order.restaurant_id.in_([r.id for r in Restaurant.query.filter_by(owner_id=current_user.owner_profile.id)]))\
         .order_by(Feedback.created_at.desc()).all()
     
     return render_template('owner/feedback.html', feedback_list=feedback_list)
@@ -533,9 +543,10 @@ def respond_to_feedback(id):
     feedback_item = Feedback.query.get_or_404(id)
     
     # VERIFY FEEDBACK IS FOR OWNER'S RESTAURANT
-    is_for_owner = db.session.query(Restaurant).join(Order, Restaurant.id == Order.restaurant_id)\
-        .filter(Order.customer_id == feedback_item.customer_id,
-                Restaurant.owner_id == current_user.owner_profile.id).first() is not None
+    is_for_owner = Restaurant.query.filter_by(
+        id=feedback_item.restaurant_id, 
+        owner_id=current_user.owner_profile.id
+    ).first() is not None
     
     if not is_for_owner:
         abort(403)
@@ -549,6 +560,12 @@ def respond_to_feedback(id):
         
         logger.info(f"Feedback #{feedback_item.id} responded to by {current_user.username}")
         flash("YOUR RESPONSE HAS BEEN SUBMITTED.", "success")
+        
+        # Redirect back to order detail if coming from there
+        if request.args.get('from_order'):
+            return redirect(url_for('owner.order_detail', id=feedback_item.order_id))
+        
+        # Otherwise go to feedback list
         return redirect(url_for('owner.feedback'))
     
     return render_template('owner/respond_to_feedback.html',

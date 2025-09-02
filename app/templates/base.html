@@ -89,15 +89,10 @@
                                     <li><a class="dropdown-item" href="{{ url_for('customer.preferences') }}">
                                         <i class="fas fa-sliders-h me-2"></i>Preferences
                                     </a></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('customer.feedback') }}">
-                                        <i class="fas fa-comment me-2"></i>Feedback
-                                    </a></li>
+
                                 {% elif current_user.is_owner() %}
                                     <li><a class="dropdown-item" href="{{ url_for('owner.reports') }}">
                                         <i class="fas fa-chart-bar me-2"></i>Reports
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('owner.feedback') }}">
-                                        <i class="fas fa-comment me-2"></i>Feedback
                                     </a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>

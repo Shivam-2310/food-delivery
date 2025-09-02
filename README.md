@@ -30,7 +30,33 @@ A comprehensive food ordering platform built with Flask, allowing customers to b
 - **Authentication**: Flask-Login
 - **Form Validation**: Flask-WTF
 
-## Installation
+## Project Structure
+
+```
+food-ordering-exit-test/
+├── app/
+│   ├── controllers/      # Route handling logic
+│   ├── forms/            # Form definitions and validation 
+│   ├── models/           # Database models
+│   ├── services/         # Business logic
+│   ├── static/           # Static assets (CSS, JS, images)
+│   ├── templates/        # Jinja2 templates
+│   ├── utils/            # Utility functions
+│   └── __init__.py       # Application factory
+├── instance/             # Instance-specific data
+├── tests/                # Unit tests
+├── app.py               # Application entry point
+├── create_db.py         # Database initialization script
+└── requirements.txt     # Project dependencies
+```
+
+## Installation and Setup
+
+### Prerequisites
+- Python 3.7 or higher
+- pip (Python package installer)
+
+### Setup Instructions
 
 1. Clone the repository:
 ```
@@ -40,31 +66,35 @@ cd justeat
 
 2. Create and activate a virtual environment:
 ```
+# On Windows
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate
+
+# On macOS/Linux
+python -m venv venv
+source venv/bin/activate
 ```
 
-3. Install required packages:
+3. Install the required packages:
 ```
 pip install -r requirements.txt
 ```
 
-4. Initialize and seed the database:
+4. Initialize the database and create test data:
 ```
-flask init-db
-flask seed-data
+python create_db.py
 ```
 
 5. Run the application:
 ```
-flask run
+python app.py
 ```
 
 6. Access the application at: http://127.0.0.1:5000
 
 ## Demo Accounts
 
-The application comes pre-seeded with two demo accounts:
+The application comes with pre-seeded demo accounts for testing:
 
 ### Customer Account
 - **Username**: customer
@@ -74,48 +104,48 @@ The application comes pre-seeded with two demo accounts:
 - **Username**: owner
 - **Password**: password123
 
-## Project Structure
+## Usage Guide
 
-- **app/** - Main application package
-  - **controllers/** - Route controllers
-  - **models/** - Database models
-  - **forms/** - Form classes using Flask-WTF
-  - **services/** - Business logic services
-  - **static/** - Static files (CSS, JS, images)
-  - **templates/** - Jinja2 templates
-  - **utils/** - Utility functions
-- **tests/** - Unit and integration tests
+### For Customers
+1. Log in using the customer credentials
+2. Browse restaurants or search for specific cuisines
+3. View restaurant menus and add items to your cart
+4. Place an order and track its status
+5. Leave reviews for restaurants and menu items
+
+### For Restaurant Owners
+1. Log in using the owner credentials
+2. Manage your restaurants and menu items
+3. Process incoming orders by updating their status
+4. View reports on sales and popular menu items
+
+## Design Principles
+
+The application follows several key design principles:
+
+- **PEP 8 Compliance**: Following Python coding standards
+- **SOLID Principles**: Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion
+- **Layered Architecture**: Separation of concerns between data access, business logic, and presentation
+- **Responsive Design**: Mobile-friendly interface using Bootstrap
 
 ## Testing
 
-Run tests using the unittest module:
+Run the unit tests using the following command:
 ```
 python -m unittest discover tests
 ```
 
-## Features and Design Decisions
+## Assumptions
 
-### Architecture
-- Layered architecture with separation of concerns
-- MVC pattern with Flask blueprints for modular design
-- RESTful route structure
-
-### Security
-- Password hashing with Werkzeug security
-- Role-based access control
-- CSRF protection with Flask-WTF
-
-### User Experience
-- Responsive design for mobile and desktop
-- Flash messages for user feedback
-- Form validation with clear error messages
-- Intuitive navigation and workflow
+- Address management, delivery management, and payment functionality are out of scope
+- All prices are in Indian Rupees (₹)
+- All locations are in Delhi, India
+- Order tracking is simplified to status updates
 
 ## License
 
 [MIT License](LICENSE)
 
-## Acknowledgments
+## Author
 
-- This project was created as an assignment
-- Images used in this project are from Unsplash
+Your Name

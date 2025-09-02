@@ -130,14 +130,158 @@
         </div>
     </div>
     
+    <!-- FEEDBACK & ACTIONS -->
+    <div id="feedback" class="feedback-section pt-3 mt-2"></div>
+    
+    {% set order_has_feedback = existing_feedback is not none %}
+    
+    {% if order.status == 'completed' %}
+        {% if not order_has_feedback %}
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">RATE YOUR ORDER</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% if feedback_form %}
+                            {{ feedback_form.hidden_tag() }}
+                        {% endif %}
+                        
+                        <div class="text-center mb-4">
+                            <p class="mb-3">How would you rate your experience?</p>
+                            <div class="d-flex justify-content-center">
+                                <input type="hidden" id="selected_rating" name="rating" value="5">
+                                <div class="star-rating">
+                                    {% for i in range(1, 6) %}
+                                        <i class="far fa-star text-warning fa-3x mx-2 rating-star" data-value="{{ i }}"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="feedback-message" class="form-label">Your Feedback (Optional)</label>
+                            <textarea id="feedback-message" name="message" class="form-control" rows="4" placeholder="Tell us about your experience..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i> SUBMIT FEEDBACK
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const stars = document.querySelectorAll('.rating-star');
+                            const ratingInput = document.getElementById('selected_rating');
+                            
+                            // Handle star selection
+                            stars.forEach(star => {
+                                // Make stars interactive
+                                star.style.cursor = 'pointer';
+                                
+                                star.addEventListener('click', function() {
+                                    const value = this.getAttribute('data-value');
+                                    ratingInput.value = value;
+                                    updateStars(value);
+                                });
+                                
+                                star.addEventListener('mouseover', function() {
+                                    const value = this.getAttribute('data-value');
+                                    highlightStars(value);
+                                });
+                            });
+                            
+                            document.querySelector('.star-rating').addEventListener('mouseout', function() {
+                                const selectedRating = ratingInput.value;
+                                updateStars(selectedRating);
+                            });
+                            
+                            function updateStars(rating) {
+                                stars.forEach(star => {
+                                    const value = star.getAttribute('data-value');
+                                    if (value <= rating) {
+                                        star.classList.remove('far');
+                                        star.classList.add('fas');
+                                    } else {
+                                        star.classList.remove('fas');
+                                        star.classList.add('far');
+                                    }
+                                });
+                            }
+                            
+                            function highlightStars(rating) {
+                                stars.forEach(star => {
+                                    const value = star.getAttribute('data-value');
+                                    if (value <= rating) {
+                                        star.classList.remove('far');
+                                        star.classList.add('fas');
+                                    } else {
+                                        star.classList.remove('fas');
+                                        star.classList.add('far');
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+                </div>
+            </div>
+        {% else %}
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">YOUR FEEDBACK</h4>
+                        <span class="badge bg-success">SUBMITTED</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="rating-display">
+                            {% for i in range(1, 6) %}
+                                <i class="{% if i <= existing_feedback.rating %}fas{% else %}far{% endif %} fa-star text-warning fa-2x mx-1"></i>
+                            {% endfor %}
+                        </div>
+                        <p class="text-muted mt-2">You rated this order {{ existing_feedback.rating }} out of 5 stars</p>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Your Comments</h5>
+                            <p class="card-text mb-0">{{ existing_feedback.message }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if existing_feedback.response %}
+                        <div class="card border-0 shadow-sm bg-light mb-0">
+                            <div class="card-header bg-primary text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-reply me-2"></i>
+                                    <h5 class="mb-0">Restaurant Response</h5>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text mb-0">{{ existing_feedback.response }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <p class="mb-0">The restaurant has not yet responded to your feedback.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
     <!-- ACTIONS -->
     <div class="card border-0 shadow">
         <div class="card-body">
             <h4 class="mb-3">ACTIONS</h4>
             <div class="d-flex flex-wrap gap-2">
-                <a href="{{ url_for('customer.add_review', type='restaurant', id=order.restaurant.id) }}" class="btn btn-outline-primary">
-                    <i class="fas fa-star"></i> REVIEW RESTAURANT
-                </a>
                 {% if order.status == 'completed' %}
                     <a href="{{ url_for('customer.restaurant_detail', id=order.restaurant.id) }}" class="btn btn-primary">
                         <i class="fas fa-utensils"></i> ORDER AGAIN

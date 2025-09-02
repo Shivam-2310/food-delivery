@@ -63,17 +63,24 @@
                         <div class="card-body">
                             <h4 class="card-title mb-1">{{ restaurant.name }}</h4>
                             <p class="text-muted mb-2">{{ restaurant.cuisine_type }} | {{ restaurant.location }}</p>
-                            <div class="mb-3">
-                                {% for i in range(1, 6) %}
-                                    {% if i <= restaurant.average_rating %}
-                                        <i class="fas fa-star text-warning"></i>
-                                    {% elif i - 0.5 <= restaurant.average_rating %}
-                                        <i class="fas fa-star-half-alt text-warning"></i>
-                                    {% else %}
-                                        <i class="far fa-star text-warning"></i>
-                                    {% endif %}
-                                {% endfor %}
-                                <small class="text-muted">({{ restaurant.total_reviews }})</small>
+                            <div class="rating-box mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rating-stars me-2">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= restaurant.average_rating %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% elif i - 0.5 <= restaurant.average_rating %}
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="rating-value">
+                                        <strong class="rating-number">{{ '%.1f'|format(restaurant.average_rating) }}</strong>
+                                        <span class="text-muted">({{ restaurant.total_reviews }} {{ 'reviews' if restaurant.total_reviews != 1 else 'review' }})</span>
+                                    </div>
+                                </div>
                             </div>
                             <p class="card-text">{{ restaurant.description|truncate(100) }}</p>
                             <div class="d-grid">

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .text-404 { font-family: Arial, sans-serif; font-size: 72px; font-weight: bold; fill: #dc3545; }
+    .plate { fill: #f8f9fa; stroke: #6c757d; stroke-width: 3; }
+    .fork { fill: #6c757d; }
+    .knife { fill: #6c757d; }
+    .question-mark { fill: #dc3545; font-family: Arial, sans-serif; font-size: 100px; font-weight: bold; }
+  </style>
+  
+  <!-- Plate -->
+  <circle cx="250" cy="150" r="120" class="plate" />
+  
+  <!-- Fork -->
+  <path d="M150 80 L140 220 L160 220 L150 80 Z" class="fork" />
+  <path d="M130 90 L120 120 L180 120 L170 90 Z" class="fork" />
+  
+  <!-- Knife -->
+  <path d="M350 80 L340 220 L360 220 L350 80 Z" class="knife" />
+  <path d="M320 90 L370 90 L380 120 L310 120 Z" class="knife" />
+  
+  <!-- Question mark -->
+  <text x="250" y="180" class="question-mark" text-anchor="middle">?</text>
+  
+  <!-- 404 text -->
+  <text x="250" y="280" class="text-404" text-anchor="middle">404</text>
+</svg>

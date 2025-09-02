@@ -9,8 +9,9 @@ from flask_login import login_required, current_user
 from sqlalchemy import or_, and_
 from app import db
 from app.models import User, Customer, Restaurant, MenuItem, Order, OrderItem, Review, Feedback
+from app.models import STATUS_COMPLETED
 from app.models import STATUS_PENDING, STATUS_CONFIRMED, STATUS_PREPARING, STATUS_READY, STATUS_COMPLETED
-from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, ReviewForm, FeedbackForm, SearchForm
+from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, ReviewForm, OrderFeedbackForm, SearchForm
 from app.utils.decorators import customer_required
 
 bp = Blueprint('customer', __name__, url_prefix='/customer')
@@ -174,14 +175,23 @@ def restaurant_detail(id):
     # CHECK IF RESTAURANT IS IN FAVORITES
     is_favorite = current_user.customer_profile.is_favorite(restaurant.id)
     
-    # GET REVIEWS
-    reviews = restaurant.reviews.order_by(Review.created_at.desc()).all()
+    # GET ORDER FEEDBACK FOR THIS RESTAURANT
+    from app.models.feedback import Feedback
+    feedback_list = Feedback.query.filter_by(restaurant_id=restaurant.id).order_by(Feedback.created_at.desc()).all()
+    
+    # CHECK IF USER HAS ORDERED FROM THIS RESTAURANT
+    has_ordered = Order.query.filter_by(
+        customer_id=current_user.customer_profile.id,
+        restaurant_id=restaurant.id,
+        status=STATUS_COMPLETED  # Only completed orders count
+    ).first() is not None
     
     return render_template('customer/restaurant_detail.html', 
                            restaurant=restaurant,
                            menu_by_category=menu_by_category,
                            is_favorite=is_favorite,
-                           reviews=reviews)
+                           reviews=feedback_list,
+                           has_ordered=has_ordered)
 
 @bp.route('/toggle_favorite/<int:restaurant_id>')
 @login_required
@@ -377,17 +387,23 @@ def orders():
     # GET ORDERS SORTED BY DATE (NEWEST FIRST)
     orders = orders_query.order_by(Order.created_at.desc()).all()
     
+    # PRE-LOAD FEEDBACK FOR EACH ORDER TO AVOID TEMPLATE ERRORS
+    for order in orders:
+        if order.feedback.count() > 0:
+            # Force loading of feedback
+            _ = list(order.feedback)
+    
     return render_template('customer/orders.html', 
                            orders=orders,
                            search_query=search_query,
                            status_filter=status_filter)
 
-@bp.route('/order/<int:id>')
+@bp.route('/order/<int:id>', methods=['GET', 'POST'])
 @login_required
 @customer_required
 def order_detail(id):
     """
-    ORDER DETAIL ROUTE
+    ORDER DETAIL ROUTE WITH FEEDBACK SUBMISSION FOR COMPLETED ORDERS
     """
     order = Order.query.get_or_404(id)
     
@@ -395,107 +411,61 @@ def order_detail(id):
     if order.customer_id != current_user.customer_profile.id:
         abort(403)
     
-    return render_template('customer/order_detail.html', order=order)
-
-@bp.route('/review/<string:type>/<int:id>', methods=['GET', 'POST'])
-@login_required
-@customer_required
-def add_review(type, id):
-    """
-    ADD REVIEW ROUTE
-    """
-    form = ReviewForm()
+    # GET EXISTING FEEDBACK IF ANY
+    existing_feedback = Feedback.query.filter_by(order_id=order.id).first()
     
-    if type == 'restaurant':
-        entity = Restaurant.query.get_or_404(id)
-        entity_name = entity.name
-        entity_type = 'Restaurant'
-    elif type == 'menu_item':
-        entity = MenuItem.query.get_or_404(id)
-        entity_name = entity.name
-        entity_type = 'Menu Item'
-        restaurant_id = entity.restaurant_id
-    else:
-        abort(404)
+    # CHECK IF ORDER IS COMPLETED AND CAN RECEIVE FEEDBACK
+    can_give_feedback = order.status == STATUS_COMPLETED and not existing_feedback
     
-    if form.validate_on_submit():
-        # CHECK IF USER HAS ORDERED FROM THIS RESTAURANT
-        if type == 'restaurant':
-            has_ordered = Order.query.filter_by(
+    # ALWAYS CREATE A FEEDBACK FORM
+    feedback_form = OrderFeedbackForm()
+    
+    # HANDLE FEEDBACK SUBMISSION IF CAN GIVE FEEDBACK
+    if can_give_feedback:
+        
+        if request.method == 'POST':
+            # Get data directly from the form
+            rating = request.form.get('rating', '5')
+            message = request.form.get('message', '')
+            
+            try:
+                rating = int(rating)
+                if rating < 1 or rating > 5:
+                    rating = 5  # Default to 5 if out of range
+            except (ValueError, TypeError):
+                rating = 5  # Default to 5 if conversion error
+            
+            # Message is optional, set to empty string if not provided
+            message = message.strip() if message else ""
+                
+            # Double-check if feedback wasn't submitted by another request while this one was processing
+            check_existing = Feedback.query.filter_by(order_id=order.id).first()
+            if check_existing:
+                flash("Feedback has already been submitted for this order.", "info")
+                return redirect(url_for('customer.order_detail', id=order.id))
+                
+            feedback = Feedback(
+                order_id=order.id,
                 customer_id=current_user.customer_profile.id,
-                restaurant_id=id
-            ).first() is not None
-        else:  # MENU ITEM
-            has_ordered = db.session.query(Order).join(OrderItem).filter(
-                Order.customer_id == current_user.customer_profile.id,
-                OrderItem.menu_item_id == id
-            ).first() is not None
-        
-        if not has_ordered:
-            flash("YOU CAN ONLY REVIEW AFTER ORDERING.", "warning")
-            if type == 'restaurant':
-                return redirect(url_for('customer.restaurant_detail', id=id))
-            else:
-                return redirect(url_for('customer.restaurant_detail', id=restaurant_id))
-        
-        # CREATE REVIEW
-        review = Review(
-            customer_id=current_user.customer_profile.id,
-            restaurant_id=id if type == 'restaurant' else restaurant_id,
-            menu_item_id=id if type == 'menu_item' else None,
-            rating=form.rating.data,
-            comment=form.comment.data
-        )
-        
-        db.session.add(review)
-        db.session.commit()
-        
-        logger.info(f"Review added by {current_user.username} for {entity_type} {entity_name}")
-        flash(f"YOUR REVIEW FOR {entity_name.upper()} HAS BEEN SUBMITTED.", "success")
-        
-        if type == 'restaurant':
-            return redirect(url_for('customer.restaurant_detail', id=id))
-        else:
-            return redirect(url_for('customer.restaurant_detail', id=restaurant_id))
+                restaurant_id=order.restaurant_id,
+                rating=rating,
+                message=message
+            )
+            
+            db.session.add(feedback)
+            db.session.commit()
+            
+            flash("YOUR FEEDBACK HAS BEEN SUBMITTED. THANK YOU!", "success")
+            return redirect(url_for('customer.order_detail', id=order.id))
     
-    return render_template('customer/add_review.html', 
-                           form=form,
-                           entity_name=entity_name,
-                           entity_type=entity_type)
+    return render_template('customer/order_detail.html', 
+                          order=order,
+                          can_give_feedback=can_give_feedback,
+                          feedback_form=feedback_form,
+                          existing_feedback=existing_feedback)
 
-@bp.route('/feedback', methods=['GET', 'POST'])
-@login_required
-@customer_required
-def feedback():
-    """
-    SUBMIT FEEDBACK ROUTE
-    """
-    form = FeedbackForm()
-    
-    if form.validate_on_submit():
-        # CREATE FEEDBACK
-        new_feedback = Feedback(
-            customer_id=current_user.customer_profile.id,
-            subject=form.subject.data,
-            message=form.message.data,
-            is_resolved=False
-        )
-        
-        db.session.add(new_feedback)
-        db.session.commit()
-        
-        logger.info(f"Feedback submitted by {current_user.username}")
-        flash("YOUR FEEDBACK HAS BEEN SUBMITTED. THANK YOU!", "success")
-        return redirect(url_for('customer.dashboard'))
-    
-    # GET USER'S PREVIOUS FEEDBACK
-    previous_feedback = Feedback.query.filter_by(
-        customer_id=current_user.customer_profile.id
-    ).order_by(Feedback.created_at.desc()).all()
-    
-    return render_template('customer/feedback.html', 
-                           form=form,
-                           previous_feedback=previous_feedback)
+# Review route removed - now using only order-specific feedback
+
 
 def get_recommendations(customer):
     """

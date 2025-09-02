@@ -50,12 +50,15 @@ class ReviewForm(FlaskForm):
     comment = TextAreaField('Your Review', validators=[Optional(), Length(max=500)])
     submit = SubmitField('SUBMIT REVIEW')
 
-class FeedbackForm(FlaskForm):
+class OrderFeedbackForm(FlaskForm):
     """
-    FORM FOR SUBMITTING APP FEEDBACK
+    FORM FOR SUBMITTING ORDER FEEDBACK AFTER COMPLETION
     """
-    subject = StringField('Subject', validators=[DataRequired(), Length(min=5, max=200)])
-    message = TextAreaField('Message', validators=[DataRequired(), Length(min=10, max=1000)])
+    rating = SelectField('Rating', 
+                        choices=[(1, '★'), (2, '★★'), (3, '★★★'), (4, '★★★★'), (5, '★★★★★')],
+                        validators=[DataRequired()],
+                        coerce=int)
+    message = TextAreaField('Your Feedback', validators=[DataRequired(), Length(min=10, max=1000)])
     submit = SubmitField('SUBMIT FEEDBACK')
 
 class SearchForm(FlaskForm):

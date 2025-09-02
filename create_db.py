@@ -2,8 +2,9 @@
 DATABASE INITIALIZATION SCRIPT
 """
 from app import create_app, db
-from app.models import User, Customer, RestaurantOwner, Restaurant, MenuItem
-from app.models import ROLE_CUSTOMER, ROLE_OWNER
+from app.models import User, Customer, RestaurantOwner, Restaurant, MenuItem, Order, OrderItem, Feedback
+from app.models import ROLE_CUSTOMER, ROLE_OWNER, STATUS_COMPLETED
+from datetime import datetime, timedelta
 
 # CREATE APP CONTEXT
 app = create_app()
@@ -23,7 +24,7 @@ with app.app_context():
         customer = Customer(
             user_id=customer_user.id,
             name='Rahul Sharma',
-            address='123 MG Road, Bangalore, Karnataka',
+            address='123 Connaught Place, New Delhi, India',
             phone='9876543210'
         )
         db.session.add(customer)
@@ -48,7 +49,7 @@ with app.app_context():
             owner_id=owner.id,
             name='Spice Junction',
             description='An authentic restaurant offering a variety of delicious Indian cuisines.',
-            location='45 Brigade Road, Bangalore, Karnataka',
+            location='45 Chandni Chowk, Old Delhi, India',
             cuisine_type='North Indian'
         )
         db.session.add(restaurant)
@@ -94,6 +95,51 @@ with app.app_context():
         
         for item in menu_items:
             db.session.add(item)
+    
+        # CREATE A COMPLETED ORDER FOR TESTING FEEDBACK
+        completed_order = Order(
+            customer_id=Customer.query.first().id,
+            restaurant_id=Restaurant.query.first().id,
+            status=STATUS_COMPLETED,
+            total_amount=429,  # Chicken Biryani + Garlic Naan
+            created_at=datetime.utcnow() - timedelta(days=2)
+        )
+        db.session.add(completed_order)
+        db.session.flush()
+        
+        # ADD ORDER ITEMS
+        biryani = MenuItem.query.filter_by(name='Chicken Biryani').first()
+        naan = MenuItem.query.filter_by(name='Garlic Naan').first()
+        
+        if biryani and naan:
+            order_items = [
+                OrderItem(
+                    order_id=completed_order.id,
+                    menu_item_id=biryani.id,
+                    quantity=1,
+                    price=biryani.price
+                ),
+                OrderItem(
+                    order_id=completed_order.id,
+                    menu_item_id=naan.id,
+                    quantity=1,
+                    price=naan.price
+                )
+            ]
+            for item in order_items:
+                db.session.add(item)
+            
+            # ADD FEEDBACK FOR THE COMPLETED ORDER
+            feedback = Feedback(
+                order_id=completed_order.id,
+                customer_id=Customer.query.first().id,
+                restaurant_id=Restaurant.query.first().id,
+                rating=4,
+                message="The food was delicious, especially the Chicken Biryani. Delivery was on time and the food was still hot. Will order again!",
+                is_resolved=True,
+                response="Thank you for your kind feedback! We're glad you enjoyed our Biryani. Looking forward to serving you again soon!"
+            )
+            db.session.add(feedback)
     
     # COMMIT ALL CHANGES
     db.session.commit()

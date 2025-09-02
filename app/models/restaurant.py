@@ -44,22 +44,43 @@ class Restaurant(db.Model):
     menu_items = db.relationship('MenuItem', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
     orders = db.relationship('Order', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
     reviews = db.relationship('Review', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
+    feedbacks = db.relationship('Feedback', backref='restaurant', lazy='dynamic')
     
     def __repr__(self):
         return f'<Restaurant {self.name}>'
     
     @property
     def average_rating(self):
-        """CALCULATE AVERAGE RATING FOR RESTAURANT"""
+        """CALCULATE AVERAGE RATING FOR RESTAURANT FROM BOTH REVIEWS AND ORDER FEEDBACK"""
+        from sqlalchemy import func
+        from app import db
+        from app.models.feedback import Feedback
+        
+        # Get average from order feedback
+        feedback_avg = db.session.query(func.avg(Feedback.rating)).filter(Feedback.restaurant_id == self.id).scalar()
+        feedback_avg = feedback_avg or 0
+        
+        # Get average from reviews
         reviews = self.reviews.all()
-        if not reviews:
-            return 0
-        return sum(r.rating for r in reviews) / len(reviews)
+        review_avg = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
+        
+        # Combine both ratings (give feedback more weight if available)
+        if feedback_avg > 0 and review_avg > 0:
+            return (feedback_avg * 2 + review_avg) / 3  # Weighted average
+        elif feedback_avg > 0:
+            return feedback_avg
+        else:
+            return review_avg
     
     @property
     def total_reviews(self):
-        """GET TOTAL NUMBER OF REVIEWS"""
-        return self.reviews.count()
+        """GET TOTAL NUMBER OF REVIEWS AND FEEDBACK"""
+        from app.models.feedback import Feedback
+        from app import db
+        
+        review_count = self.reviews.count()
+        feedback_count = db.session.query(Feedback).filter(Feedback.restaurant_id == self.id).count()
+        return review_count + feedback_count
     
     def get_menu_by_category(self):
         """GROUP MENU ITEMS BY CATEGORY"""

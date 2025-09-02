@@ -29,6 +29,7 @@ class Order(db.Model):
     
     # RELATIONSHIPS
     items = db.relationship('OrderItem', backref='order', lazy='dynamic', cascade='all, delete-orphan')
+    feedback = db.relationship('Feedback', backref='order', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Order #{self.id}>'

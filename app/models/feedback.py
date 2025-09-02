@@ -25,19 +25,24 @@ class Review(db.Model):
 
 class Feedback(db.Model):
     """
-    FEEDBACK MODEL FOR STORING GENERAL APPLICATION FEEDBACK
+    FEEDBACK MODEL FOR STORING ORDER-SPECIFIC FEEDBACK
+    ONLY ALLOWED AFTER ORDER IS COMPLETED
     """
     __tablename__ = 'feedback'
     
     id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False, unique=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
-    subject = db.Column(db.String(200), nullable=False)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # 1-5 STAR RATING
     message = db.Column(db.Text, nullable=False)
-    is_resolved = db.Column(db.Boolean, default=False)
     response = db.Column(db.Text)
+    is_resolved = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # NOTE: Order relationship is defined in the Order model
+    
     def __repr__(self):
-        status = "Resolved" if self.is_resolved else "Pending"
-        return f'<Feedback #{self.id} - {status}>'
+        status = "Responded" if self.is_resolved else "Pending Response"
+        return f'<Order Feedback #{self.id} - {self.rating}/5 - {status}>'
