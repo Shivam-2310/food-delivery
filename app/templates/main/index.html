@@ -11,32 +11,19 @@
         background-position: center;
         color: white;
         padding: 100px 0;
-        margin-bottom: 50px;
+        margin-bottom: 60px;
         border-radius: 0 0 20px 20px;
     }
     
     .hero h1 {
-        font-size: 3rem;
+        font-size: 3.5rem;
         font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
     
     .hero p {
-        font-size: 1.2rem;
-    }
-    
-    .feature-card {
-        height: 100%;
-        transition: transform 0.3s ease;
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-10px);
-    }
-    
-    .feature-icon {
-        font-size: 3rem;
-        margin-bottom: 20px;
-        color: var(--primary-color);
+        font-size: 1.4rem;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
     
     .how-it-works {
@@ -71,17 +58,72 @@
         margin-bottom: 15px;
     }
     
-    .testimonial-card {
-        height: 100%;
-        padding: 30px;
+    /* Food Gallery Styles */
+    .food-gallery {
+        margin: 40px 0 80px;
     }
     
-    .testimonial-img {
-        width: 80px;
-        height: 80px;
+    .food-gallery h2 {
+        margin-bottom: 30px;
+        font-weight: 600;
+    }
+    
+    .food-card {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        height: 240px;
+    }
+    
+    .food-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    
+    .food-card img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid var(--primary-color);
+        transition: all 0.5s ease;
+    }
+    
+    .food-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    .food-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        color: white;
+        text-align: left;
+    }
+    
+    .food-info h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    .food-info p {
+        margin: 5px 0 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .tall-card {
+        height: 505px;
+    }
+    
+    .medium-card {
+        height: 240px;
     }
 </style>
 {% endblock %}
@@ -90,8 +132,8 @@
 <!-- HERO SECTION -->
 <section class="hero">
     <div class="container text-center">
-        <h1 class="mb-4">ORDER DELICIOUS FOOD ONLINE</h1>
-        <p class="lead mb-5">Discover local restaurants and order your favorite meals for delivery or pickup</p>
+        <h1 class="mb-3">ORDER DELICIOUS FOOD ONLINE</h1>
+        <p class="lead mb-4">From local favorites to global cuisines</p>
         {% if not current_user.is_authenticated %}
             <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5">GET STARTED</a>
         {% else %}
@@ -104,43 +146,54 @@
     </div>
 </section>
 
-<!-- FEATURES SECTION -->
-<section class="container mb-5">
-    <h2 class="text-center mb-5">WHY CHOOSE JUSTEAT?</h2>
+<!-- FOOD GALLERY SECTION -->
+<section class="container food-gallery">
+    <h2 class="text-center">EXPLORE POPULAR CUISINES</h2>
     
     <div class="row g-4">
+        <!-- Column 1 with tall card -->
         <div class="col-md-4">
-            <div class="card feature-card shadow text-center p-4">
-                <div class="card-body">
-                    <div class="feature-icon">
-                        <i class="fas fa-utensils"></i>
-                    </div>
-                    <h3 class="card-title">WIDE SELECTION</h3>
-                    <p class="card-text">Choose from a variety of restaurants and cuisines that cater to all tastes and preferences.</p>
+            <div class="food-card tall-card">
+                <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80" alt="Italian Pizza">
+                <div class="food-info">
+                    <h3>ITALIAN</h3>
+                    <p>Authentic pizzas & pastas</p>
                 </div>
             </div>
         </div>
         
+        <!-- Column 2 with two medium cards -->
         <div class="col-md-4">
-            <div class="card feature-card shadow text-center p-4">
-                <div class="card-body">
-                    <div class="feature-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <h3 class="card-title">FAST ORDERING</h3>
-                    <p class="card-text">Our streamlined process makes ordering food quick and convenient for busy customers.</p>
+            <div class="food-card medium-card">
+                <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80" alt="Japanese Sushi">
+                <div class="food-info">
+                    <h3>JAPANESE</h3>
+                    <p>Fresh sushi & ramen</p>
+                </div>
+            </div>
+            <div class="food-card medium-card">
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80" alt="Gourmet Burger">
+                <div class="food-info">
+                    <h3>AMERICAN</h3>
+                    <p>Juicy burgers & fries</p>
                 </div>
             </div>
         </div>
         
+        <!-- Column 3 with two medium cards -->
         <div class="col-md-4">
-            <div class="card feature-card shadow text-center p-4">
-                <div class="card-body">
-                    <div class="feature-icon">
-                        <i class="fas fa-thumbs-up"></i>
-                    </div>
-                    <h3 class="card-title">PERSONALIZED EXPERIENCE</h3>
-                    <p class="card-text">Get recommendations based on your preferences, dietary restrictions, and order history.</p>
+            <div class="food-card medium-card">
+                <img src="https://images.unsplash.com/photo-1613545325278-f24b0cae1224?auto=format&fit=crop&w=800&q=80" alt="Indian Food">
+                <div class="food-info">
+                    <h3>INDIAN</h3>
+                    <p>Flavorful curries & tandoor</p>
+                </div>
+            </div>
+            <div class="food-card medium-card">
+                <img src="https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?auto=format&fit=crop&w=800&q=80" alt="Desserts">
+                <div class="food-info">
+                    <h3>DESSERTS</h3>
+                    <p>Indulgent sweet treats</p>
                 </div>
             </div>
         </div>
@@ -150,14 +203,13 @@
 <!-- HOW IT WORKS SECTION -->
 <section class="how-it-works mb-5">
     <div class="container">
-        <h2 class="text-center mb-5">HOW IT WORKS</h2>
+        <h2 class="text-center mb-4">HOW IT WORKS</h2>
         
         <div class="row g-4">
             <div class="col-md-3">
                 <div class="text-center">
                     <div class="step-number mx-auto">1</div>
                     <h4>BROWSE</h4>
-                    <p>Explore restaurants and menus to find exactly what you're craving</p>
                 </div>
             </div>
             
@@ -165,7 +217,6 @@
                 <div class="text-center">
                     <div class="step-number mx-auto">2</div>
                     <h4>ORDER</h4>
-                    <p>Add items to your cart and place your order with just a few clicks</p>
                 </div>
             </div>
             
@@ -173,7 +224,6 @@
                 <div class="text-center">
                     <div class="step-number mx-auto">3</div>
                     <h4>TRACK</h4>
-                    <p>Follow your order status in real-time as it's being prepared</p>
                 </div>
             </div>
             
@@ -181,20 +231,16 @@
                 <div class="text-center">
                     <div class="step-number mx-auto">4</div>
                     <h4>ENJOY</h4>
-                    <p>Receive your food and enjoy a delicious meal without the hassle</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-
-
 <!-- CALL TO ACTION -->
 <section class="container text-center mb-5">
     <div class="p-5 bg-primary text-white rounded-3 shadow">
         <h2 class="mb-3">READY TO ORDER?</h2>
-        <p class="lead mb-4">Start exploring restaurants near you and enjoy your favorite food today!</p>
         {% if not current_user.is_authenticated %}
             <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-5">LOGIN NOW</a>
         {% else %}
