@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db
-from app.models import Restaurant, MenuItem, Order, Review, Feedback
+from app.models import Restaurant, MenuItem, Order, OrderItem, Review, Feedback
 from app.forms.owner_forms import RestaurantForm, MenuItemForm, OrderUpdateForm, FeedbackResponseForm
 from app.utils.decorators import owner_required
 from sqlalchemy import func, desc
@@ -499,16 +499,41 @@ def reports():
             .filter(Order.restaurant_id == restaurant_id)\
             .scalar() or 0
         
-        # AVERAGE RATING
-        avg_rating = db.session.query(func.avg(Review.rating))\
-            .filter(Review.restaurant_id == restaurant_id)\
-            .scalar() or 0
+        # AVERAGE RATING - Use the restaurant's average_rating property
+        restaurant = Restaurant.query.get(restaurant_id)
+        avg_rating = restaurant.average_rating
+        
+        # ORDERS BY DAY (LAST 30 DAYS)
+        from datetime import datetime, timedelta
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)
+        
+        daily_orders = db.session.query(
+            func.date(Order.created_at).label('date'),
+            func.count(Order.id).label('count')
+        ).filter(
+            Order.restaurant_id == restaurant_id,
+            Order.created_at >= start_date
+        ).group_by(func.date(Order.created_at))\
+        .order_by(func.date(Order.created_at)).all()
+        
+        # REVENUE TREND (LAST 30 DAYS)
+        daily_revenue = db.session.query(
+            func.date(Order.created_at).label('date'),
+            func.sum(Order.total_amount).label('revenue')
+        ).filter(
+            Order.restaurant_id == restaurant_id,
+            Order.created_at >= start_date
+        ).group_by(func.date(Order.created_at))\
+        .order_by(func.date(Order.created_at)).all()
     else:
         # INITIALIZE VARIABLES
         top_items = []
         orders_count = 0
         total_revenue = 0
         avg_rating = 0
+        daily_orders = []
+        daily_revenue = []
     
     return render_template('owner/reports.html',
                            restaurants=restaurants,
@@ -516,7 +541,9 @@ def reports():
                            top_items=top_items,
                            orders_count=orders_count,
                            total_revenue=total_revenue,
-                           avg_rating=avg_rating)
+                           avg_rating=avg_rating,
+                           daily_orders=daily_orders,
+                           daily_revenue=daily_revenue)
 
 @bp.route('/feedback')
 @login_required

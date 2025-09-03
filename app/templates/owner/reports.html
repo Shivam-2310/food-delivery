@@ -103,16 +103,23 @@
             </div>
         </div>
         
-        <!-- CHARTS PLACEHOLDER -->
+        <!-- CHARTS -->
         <div class="row">
             <div class="col-md-6">
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header bg-white py-3">
                         <h4 class="mb-0">ORDERS BY DAY</h4>
                     </div>
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
-                        <p>CHART VISUALIZATION WOULD APPEAR HERE</p>
+                    <div class="card-body">
+                        {% if daily_orders %}
+                            <div class="chart-container">
+                                <canvas id="ordersChart"></canvas>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <p class="mb-0">NO ORDER DATA AVAILABLE</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -121,9 +128,16 @@
                     <div class="card-header bg-white py-3">
                         <h4 class="mb-0">REVENUE TREND</h4>
                     </div>
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
-                        <p>CHART VISUALIZATION WOULD APPEAR HERE</p>
+                    <div class="card-body">
+                        {% if daily_revenue %}
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <p class="mb-0">NO REVENUE DATA AVAILABLE</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -138,4 +152,88 @@
         </div>
     {% endif %}
 </div>
+
+<!-- CHART.JS LIBRARY -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- CHART INITIALIZATION -->
+{% if restaurant_id and (daily_orders or daily_revenue) %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ORDERS BY DAY CHART
+    {% if daily_orders %}
+    const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+    const ordersChart = new Chart(ordersCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for order in daily_orders %}'{{ order.date.split('-')[1] }}/{{ order.date.split('-')[2] }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Orders',
+                data: [{% for order in daily_orders %}{{ order.count }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // REVENUE TREND CHART
+    {% if daily_revenue %}
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for revenue in daily_revenue %}'{{ revenue.date.split('-')[1] }}/{{ revenue.date.split('-')[2] }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: [{% for revenue in daily_revenue %}{{ revenue.revenue }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toFixed(2);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endif %}
 {% endblock %}
