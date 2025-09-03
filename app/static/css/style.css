@@ -245,6 +245,108 @@ a {
     color: #6c757d;
 }
 
+/* STICKY SIDEBAR - Fixes navbar merging issue */
+.sticky-sidebar {
+    position: relative; /* Remove sticky since container handles it */
+    max-height: none; /* Remove height restriction */
+    overflow-y: visible; /* Remove scroll */
+}
+
+/* Ensure navbar stays above other elements */
+.navbar.sticky-top {
+    z-index: 1030;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure proper spacing below navbar */
+main.container {
+    margin-top: 1rem;
+}
+
+/* Prevent content from going under navbar */
+body {
+    padding-top: 0;
+}
+
+/* Smooth scrolling for better UX */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Sticky sidebar container for better organization */
+.sticky-sidebar-container {
+    position: sticky;
+    top: 100px; /* Account for navbar height + some spacing */
+    z-index: 1000;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+/* Additional spacing for better visual separation */
+.list-group.sticky-sidebar {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    position: relative; /* Remove sticky from individual list group */
+}
+
+/* Menu legend section styling */
+.menu-legend-section {
+    margin-top: 1rem;
+    position: relative;
+    background-color: white;
+}
+
+.menu-legend-section .card {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: white;
+}
+
+/* Ensure proper visual separation between categories and legend */
+.sticky-sidebar-container .list-group {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.sticky-sidebar-container .menu-legend-section .card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    margin-top: 1.5rem; /* Ensure proper spacing */
+}
+
+/* Force menu legend to stay below categories */
+.sticky-sidebar-container .menu-legend-section {
+    position: relative;
+    background-color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure menu legend card has solid background */
+.sticky-sidebar-container .menu-legend-section .card {
+    background-color: white !important;
+    border: 1px solid var(--border-color);
+}
+
+.list-group.sticky-sidebar .list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group.sticky-sidebar .list-group-item:first-child {
+    border-top: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.list-group.sticky-sidebar .list-group-item:last-child {
+    border-bottom: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
 /* FOOTER CUSTOMIZATION */
 footer a {
     transition: var(--transition);
