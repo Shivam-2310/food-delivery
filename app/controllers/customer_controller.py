@@ -112,7 +112,13 @@ def preferences():
         # POPULATE FORM WITH EXISTING DIETARY RESTRICTIONS
         form.dietary_restrictions.data = current_user.customer_profile.get_dietary_restrictions()
     
-    return render_template('customer/preferences.html', form=form)
+    # GET FAVORITE RESTAURANTS FOR DISPLAY
+    customer_prefs = current_user.customer_profile.get_preferences()
+    favorites = []
+    if customer_prefs and 'favorite_restaurants' in customer_prefs:
+        favorites = Restaurant.query.filter(Restaurant.id.in_(customer_prefs['favorite_restaurants'])).all()
+    
+    return render_template('customer/preferences.html', form=form, favorites=favorites)
 
 @bp.route('/restaurants')
 @login_required
