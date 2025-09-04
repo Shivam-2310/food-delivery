@@ -26,7 +26,7 @@
                         {% endif %}
                         <div class="card-body">
                             <h4 class="card-title mb-1">{{ restaurant.name }}</h4>
-                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }} | {{ restaurant.location }}</p>
+                            <p class="text-muted mb-2">{{ restaurant.cuisines_display }} | {{ restaurant.location }}</p>
                             <div class="mb-3">
                                 {% for i in range(1, 6) %}
                                     {% if i <= restaurant.average_rating %}

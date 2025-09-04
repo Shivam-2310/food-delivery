@@ -21,7 +21,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h1 class="card-title mb-1">{{ restaurant.name }}</h1>
-                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }} | {{ restaurant.location }}</p>
+                            <p class="text-muted mb-2">{{ restaurant.cuisines_display }} | {{ restaurant.location }}</p>
                         </div>
                         <div>
                             <a href="{{ url_for('customer.toggle_favorite', restaurant_id=restaurant.id) }}" 

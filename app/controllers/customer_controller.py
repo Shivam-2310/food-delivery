@@ -489,12 +489,15 @@ def get_recommendations(customer):
     ).distinct().all()
     ordered_restaurant_ids = [r[0] for r in ordered_restaurant_ids]
     
-    # FIND RESTAURANTS THAT MATCH CUSTOMER PREFERENCES
+    # FIND RESTAURANTS THAT MATCH CUSTOMER PREFERENCES (match-any on cuisines list)
     if favorite_cuisines:
-        cuisine_recommendations = Restaurant.query.filter(
-            Restaurant.cuisine_type.in_(favorite_cuisines),
-            ~Restaurant.id.in_(ordered_restaurant_ids) if ordered_restaurant_ids else True
-        ).all()
+        # Start with candidates not already ordered from
+        candidate_query = Restaurant.query
+        if ordered_restaurant_ids:
+            candidate_query = candidate_query.filter(~Restaurant.id.in_(ordered_restaurant_ids))
+        candidates = candidate_query.all()
+        favorite_set = set(favorite_cuisines)
+        cuisine_recommendations = [r for r in candidates if favorite_set.intersection(set(r.get_cuisines()))]
         recommendations.extend(cuisine_recommendations)
     
     # IF VEGETARIAN IS IN PREFERENCES, FIND RESTAURANTS WITH VEGETARIAN OPTIONS

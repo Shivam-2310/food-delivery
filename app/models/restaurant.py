@@ -36,8 +36,7 @@ class Restaurant(db.Model):
     name = db.Column(db.String(100), nullable=False, index=True)
     description = db.Column(db.Text)
     location = db.Column(db.String(200), nullable=False, index=True)
-    cuisine_type = db.Column(db.String(50), index=True)
-    # NEW: store multiple cuisines as JSON-encoded text (backward compatible with cuisine_type)
+    # Store multiple cuisines as JSON-encoded text
     cuisines = db.Column(db.Text)
     image_path = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -98,7 +97,7 @@ class Restaurant(db.Model):
     # CUISINES HELPERS
     # ---------------------
     def get_cuisines(self):
-        """Return cuisines as a list. Falls back to single cuisine_type if needed."""
+        """Return cuisines as a list (empty list if none)."""
         try:
             if self.cuisines:
                 data = json.loads(self.cuisines)
@@ -106,10 +105,10 @@ class Restaurant(db.Model):
                     return [c for c in data if isinstance(c, str) and c.strip()]
         except Exception:
             pass
-        return [self.cuisine_type] if self.cuisine_type else []
+        return []
 
     def set_cuisines(self, cuisines_list):
-        """Persist cuisines from a list of strings. Also maintain cuisine_type for compatibility."""
+        """Persist cuisines from a list of strings."""
         cuisines_clean = []
         if cuisines_list:
             for c in cuisines_list:
@@ -119,8 +118,6 @@ class Restaurant(db.Model):
                 if c_stripped and c_stripped not in cuisines_clean:
                     cuisines_clean.append(c_stripped)
         self.cuisines = json.dumps(cuisines_clean) if cuisines_clean else None
-        # keep cuisine_type as first cuisine for legacy paths/search
-        self.cuisine_type = cuisines_clean[0] if cuisines_clean else None
 
     @property
     def cuisines_display(self):

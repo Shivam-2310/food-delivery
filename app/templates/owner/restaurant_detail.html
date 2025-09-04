@@ -22,14 +22,9 @@
                         <div>
                             <h1 class="card-title mb-1">{{ restaurant.name }}</h1>
                             <div class="mb-2 d-flex flex-wrap align-items-center gap-1">
-                                {% set cuisines_list = restaurant.get_cuisines() %}
-                                {% if cuisines_list %}
-                                    {% for c in cuisines_list %}
-                                        <span class="badge bg-light text-dark border">{{ c }}</span>
-                                    {% endfor %}
-                                {% else %}
-                                    <span class="badge bg-light text-dark border">{{ restaurant.cuisine_type }}</span>
-                                {% endif %}
+                                {% for c in restaurant.get_cuisines() %}
+                                    <span class="badge bg-light text-dark border">{{ c }}</span>
+                                {% endfor %}
                                 <span class="text-muted ms-2">| {{ restaurant.location }}</span>
                             </div>
                         </div>

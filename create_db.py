@@ -49,9 +49,9 @@ with app.app_context():
             owner_id=owner.id,
             name='Spice Junction',
             description='An authentic restaurant offering a variety of delicious Indian cuisines.',
-            location='45 Chandni Chowk, Old Delhi, India',
-            cuisine_type='North Indian'
+            location='45 Chandni Chowk, Old Delhi, India'
         )
+        restaurant.set_cuisines(['North Indian'])
         db.session.add(restaurant)
         db.session.flush()  # GET ID
         

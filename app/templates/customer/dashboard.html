@@ -133,7 +133,7 @@
                                         {% endif %}
                                         <div class="card-body">
                                             <h5 class="card-title mb-1">{{ restaurant.name }}</h5>
-                                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }}</p>
+                                            <p class="text-muted mb-2">{{ restaurant.cuisines_display }}</p>
                                             <div class="mb-2">
                                                 {% for i in range(1, 6) %}
                                                     {% if i <= restaurant.average_rating %}
@@ -187,7 +187,7 @@
                                         {% endif %}
                                         <div class="card-body">
                                             <h5 class="card-title mb-1">{{ restaurant.name }}</h5>
-                                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }}</p>
+                                            <p class="text-muted mb-2">{{ restaurant.cuisines_display }}</p>
                                             <div class="mb-2">
                                                 {% for i in range(1, 6) %}
                                                     {% if i <= restaurant.average_rating %}

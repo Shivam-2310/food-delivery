@@ -73,9 +73,9 @@ def seed_data():
             owner_id=owner.id,
             name='Tasty Treats',
             description='A delicious restaurant with a variety of cuisines to satisfy any craving.',
-            location='456 Food Ave, Cuisine City, USA',
-            cuisine_type='Italian'
+            location='456 Food Ave, Cuisine City, USA'
         )
+        restaurant.set_cuisines(['Italian'])
         db.session.add(restaurant)
         db.session.flush()  # GET ID
         

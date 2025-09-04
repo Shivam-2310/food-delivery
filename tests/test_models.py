@@ -61,6 +61,7 @@ class TestModels(unittest.TestCase):
         """
         # CREATE USER AND CUSTOMER
         user = User(username='customer', email='customer@example.com', role=ROLE_CUSTOMER)
+        user.set_password('password123')
         db.session.add(user)
         db.session.flush()
         
@@ -99,6 +100,7 @@ class TestModels(unittest.TestCase):
         """
         # CREATE OWNER
         user = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
+        user.set_password('password123')
         db.session.add(user)
         db.session.flush()
         
@@ -111,9 +113,9 @@ class TestModels(unittest.TestCase):
             owner_id=owner.id,
             name='Test Restaurant',
             description='Test Description',
-            location='Test Location',
-            cuisine_type='Italian'
+            location='Test Location'
         )
+        restaurant.set_cuisines(['Italian'])
         db.session.add(restaurant)
         db.session.flush()
         
@@ -142,7 +144,7 @@ class TestModels(unittest.TestCase):
         # RETRIEVE AND CHECK
         saved_restaurant = Restaurant.query.get(restaurant.id)
         self.assertEqual(saved_restaurant.name, 'Test Restaurant')
-        self.assertEqual(saved_restaurant.cuisine_type, 'Italian')
+        self.assertEqual(saved_restaurant.get_cuisines(), ['Italian'])
         
         menu_items = saved_restaurant.menu_items.all()
         self.assertEqual(len(menu_items), 2)
@@ -162,6 +164,7 @@ class TestModels(unittest.TestCase):
         """
         # CREATE CUSTOMER
         user1 = User(username='customer', email='customer@example.com', role=ROLE_CUSTOMER)
+        user1.set_password('password123')
         db.session.add(user1)
         db.session.flush()
         
@@ -170,6 +173,7 @@ class TestModels(unittest.TestCase):
         
         # CREATE OWNER AND RESTAURANT
         user2 = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
+        user2.set_password('password123')
         db.session.add(user2)
         db.session.flush()
         
@@ -181,9 +185,9 @@ class TestModels(unittest.TestCase):
             owner_id=owner.id,
             name='Test Restaurant',
             description='Test Description',
-            location='Test Location',
-            cuisine_type='Italian'
+            location='Test Location'
         )
+        restaurant.set_cuisines(['Italian'])
         db.session.add(restaurant)
         db.session.flush()
         
@@ -242,6 +246,7 @@ class TestModels(unittest.TestCase):
         """
         # CREATE CUSTOMER
         user1 = User(username='customer', email='customer@example.com', role=ROLE_CUSTOMER)
+        user1.set_password('password123')
         db.session.add(user1)
         db.session.flush()
         
@@ -250,6 +255,7 @@ class TestModels(unittest.TestCase):
         
         # CREATE OWNER AND RESTAURANT
         user2 = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
+        user2.set_password('password123')
         db.session.add(user2)
         db.session.flush()
         
@@ -261,9 +267,9 @@ class TestModels(unittest.TestCase):
             owner_id=owner.id,
             name='Test Restaurant',
             description='Test Description',
-            location='Test Location',
-            cuisine_type='Italian'
+            location='Test Location'
         )
+        restaurant.set_cuisines(['Italian'])
         db.session.add(restaurant)
         db.session.flush()
         
