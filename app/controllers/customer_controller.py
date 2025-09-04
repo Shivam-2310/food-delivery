@@ -163,6 +163,10 @@ def restaurants():
     if vegetarian_only:
         restaurants = [r for r in restaurants if any(item.is_vegetarian for item in r.menu_items)]
     
+    # ADD FAVORITE STATUS TO EACH RESTAURANT
+    for restaurant in restaurants:
+        restaurant.is_favorite = current_user.customer_profile.is_favorite(restaurant.id)
+    
     return render_template('customer/restaurants.html', 
                            restaurants=restaurants, 
                            search_form=search_form,

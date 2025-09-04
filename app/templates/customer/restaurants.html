@@ -4,87 +4,181 @@
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="mb-4">RESTAURANTS</h1>
+    <!-- HEADER SECTION -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">Discover Amazing Restaurants</h1>
+        <p class="lead text-muted">Find your next favorite dining experience</p>
+    </div>
     
-    <!-- SEARCH AND FILTER SECTION -->
-    <div class="card border-0 shadow mb-4">
-        <div class="card-body filter-bar">
+    <!-- ENHANCED SEARCH AND FILTER SECTION -->
+    <div class="card border-0 shadow-lg mb-5">
+        <div class="card-header bg-gradient-primary text-white py-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-search fa-2x me-3"></i>
+                <div>
+                    <h3 class="mb-1">Find Your Perfect Restaurant</h3>
+                    <p class="mb-0 opacity-75">Search by name, location, cuisine, or dietary preferences</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
             <form method="GET" action="{{ url_for('customer.restaurants') }}" id="searchForm">
-                <div class="row g-3 align-items-stretch">
-                    <div class="col-md-3">
-                        <div class="form-floating h-100">
-                            {{ search_form.query(class="form-control h-100", placeholder="Search", value=query) }}
+                <div class="row g-3">
+                    <!-- SEARCH INPUT -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="form-floating">
+                            {{ search_form.query(class="form-control", placeholder="Search restaurants...", value=query) }}
                             {{ search_form.query.label }}
                         </div>
                     </div>
                     
-                    <div class="col-md-3">
-                        <div class="form-floating h-100">
-                            {{ search_form.location(class="form-control h-100", placeholder="Location", value=location) }}
+                    <!-- LOCATION INPUT -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="form-floating">
+                            {{ search_form.location(class="form-control", placeholder="Enter location...", value=location) }}
                             {{ search_form.location.label }}
                         </div>
                     </div>
                     
-                    <div class="col-md-3">
-                        <div class="dropdown w-100 h-100">
-                            <button class="btn btn-white border form-control dropdown-toggle text-start d-flex align-items-center position-relative w-100 pe-4" 
-                                    type="button" 
-                                    id="cuisineDropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-expanded="false">
-                                <span>Cuisines</span>
-                                <span class="clear-cuisines-icon text-primary d-none ms-2" role="button" tabindex="0" aria-label="Clear cuisines" title="Clear">&times;</span>
-                            </button>
-                            
-                            <div class="dropdown-menu p-3 w-100" aria-labelledby="cuisineDropdown" style="max-height: 320px; overflow:auto;">
-                                <div class="row g-2">
-                                    {% for subfield in search_form.cuisines %}
-                                        <div class="col-6">
-                                            <div class="form-check">
-                                                {{ subfield(class="form-check-input", id=subfield.id) }}
-                                                <label class="form-check-label" for="{{ subfield.id }}">{{ subfield.label.text }}</label>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                                        
-                    <div class="col-md-3">
-                        <div class="form-floating h-100">
-                            {{ search_form.vegetarian_only(class="form-select h-100", value=vegetarian_only) }}
+                    <!-- VEGETARIAN FILTER -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="form-floating">
+                            {{ search_form.vegetarian_only(class="form-select", value=vegetarian_only) }}
                             {{ search_form.vegetarian_only.label }}
                         </div>
                     </div>
                     
-                    <div class="col-md-3 d-flex align-items-center">
-                        {{ search_form.submit(class="btn btn-primary w-100") }}
+                    <!-- CUISINE FILTER -->
+                    <div class="col-lg-8 col-md-6">
+                        <div class="cuisine-filter-container">
+                            <label class="form-label fw-bold text-muted mb-2">
+                                <i class="fas fa-utensils me-2"></i>Filter by Cuisine
+                            </label>
+                            <div class="cuisine-chips-container">
+                                {% for subfield in search_form.cuisines %}
+                                    <div class="form-check form-check-inline cuisine-chip">
+                                        {{ subfield(class="form-check-input", id=subfield.id) }}
+                                        <label class="form-check-label" for="{{ subfield.id }}">
+                                            {{ subfield.label.text }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SEARCH BUTTON -->
+                    <div class="col-lg-4 col-md-6 d-flex align-items-end">
+                        <div class="d-grid w-100">
+                            {{ search_form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
                     </div>
                 </div>
+                
+                <!-- ACTIVE FILTERS DISPLAY -->
+                {% if query or location or cuisines or vegetarian_only %}
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="text-muted fw-bold">Active filters:</span>
+                            {% if query %}
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-search me-1"></i>{{ query }}
+                                    <a href="{{ url_for('customer.restaurants', location=location, cuisines=cuisines, vegetarian_only=vegetarian_only) }}" 
+                                       class="text-white ms-2" style="text-decoration: none;">&times;</a>
+                                </span>
+                            {% endif %}
+                            {% if location %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ location }}
+                                    <a href="{{ url_for('customer.restaurants', query=query, cuisines=cuisines, vegetarian_only=vegetarian_only) }}" 
+                                       class="text-white ms-2" style="text-decoration: none;">&times;</a>
+                                </span>
+                            {% endif %}
+                            {% if cuisines %}
+                                {% for cuisine in cuisines %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-utensils me-1"></i>{{ cuisine }}
+                                        <a href="{{ url_for('customer.restaurants', query=query, location=location, cuisines=cuisines|reject('equalto', cuisine)|list, vegetarian_only=vegetarian_only) }}" 
+                                           class="text-white ms-2" style="text-decoration: none;">&times;</a>
+                                    </span>
+                                {% endfor %}
+                            {% endif %}
+                            {% if vegetarian_only %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-leaf me-1"></i>Vegetarian Only
+                                    <a href="{{ url_for('customer.restaurants', query=query, location=location, cuisines=cuisines) }}" 
+                                       class="text-dark ms-2" style="text-decoration: none;">&times;</a>
+                                </span>
+                            {% endif %}
+                            <a href="{{ url_for('customer.restaurants') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-times me-1"></i>Clear All
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
             </form>
         </div>
     </div>
     
+    <!-- RESTAURANTS COUNT AND SORT OPTIONS -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">
+                {% if restaurants %}
+                    {{ restaurants|length }} Restaurant{{ 's' if restaurants|length != 1 else '' }} Found
+                {% else %}
+                    No Restaurants Found
+                {% endif %}
+            </h4>
+            <p class="text-muted mb-0">
+                {% if query or location or cuisines or vegetarian_only %}
+                    Based on your search criteria
+                {% else %}
+                    All available restaurants
+                {% endif %}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm" onclick="toggleView('grid')" id="gridViewBtn">
+                <i class="fas fa-th"></i> Grid
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="toggleView('list')" id="listViewBtn">
+                <i class="fas fa-list"></i> List
+            </button>
+        </div>
+    </div>
+    
     <!-- RESTAURANTS LISTING -->
-    <div class="row g-4">
+    <div id="restaurantsContainer">
         {% if restaurants %}
-            {% for restaurant in restaurants %}
-                <div class="col-lg-4 col-md-6">
-                    <div class="card h-100 restaurant-card shadow">
-                        {% if restaurant.image_path %}
-                            <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
-                                 class="card-img-top" alt="{{ restaurant.name }}">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='images/restaurant_default.jpg') }}" 
-                                 class="card-img-top" alt="Default image">
-                        {% endif %}
-                        <div class="card-body">
-                            <h4 class="card-title mb-1">{{ restaurant.name }}</h4>
-                            <p class="text-muted mb-2">{{ restaurant.location }}</p>
-                            <div class="rating-box mb-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rating-stars me-2">
+            <!-- GRID VIEW -->
+            <div id="gridView" class="row g-4">
+                {% for restaurant in restaurants %}
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 restaurant-card border-0 shadow-sm hover-lift">
+                            <div class="position-relative">
+                                {% if restaurant.image_path %}
+                                    <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
+                                         class="card-img-top" alt="{{ restaurant.name }}" style="height: 250px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/restaurant_default.jpg') }}" 
+                                         class="card-img-top" alt="Default image" style="height: 250px; object-fit: cover;">
+                                {% endif %}
+                                {% if restaurant.is_favorite %}
+                                <div class="position-absolute top-0 end-0 m-3">
+                                    <div class="btn btn-sm btn-light rounded-circle shadow-sm favorite-tag">
+                                        <i class="fas fa-heart text-danger fw-bold"></i>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title fw-bold mb-2">{{ restaurant.name }}</h5>
+                                <p class="text-muted mb-2 small">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ restaurant.location }}
+                                </p>
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center">
                                         {% for i in range(1, 6) %}
                                             {% if i <= restaurant.average_rating %}
                                                 <i class="fas fa-star text-warning"></i>
@@ -94,62 +188,290 @@
                                                 <i class="far fa-star text-warning"></i>
                                             {% endif %}
                                         {% endfor %}
-                                    </div>
-                                    <div class="rating-value">
-                                        <strong class="rating-number">{{ '%.1f'|format(restaurant.average_rating) }}</strong>
-                                        <span class="text-muted">({{ restaurant.total_reviews }} {{ 'reviews' if restaurant.total_reviews != 1 else 'review' }})</span>
+                                        <span class="ms-2 fw-bold">{{ '%.1f'|format(restaurant.average_rating) }}</span>
+                                        <span class="ms-2 text-muted small">({{ restaurant.total_reviews }} reviews)</span>
                                     </div>
                                 </div>
-                            </div>
-                            <p class="card-text">{{ restaurant.description|truncate(100) }}</p>
-                            <div class="d-grid">
-                                <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" 
-                                   class="btn btn-primary">VIEW MENU</a>
+                                <p class="card-text small text-muted flex-grow-1">{{ restaurant.description|truncate(100) }}</p>
+                                <div class="mt-auto">
+                                    <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" 
+                                       class="btn btn-primary w-100">
+                                        <i class="fas fa-utensils me-2"></i>View Menu
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
+            
+            <!-- LIST VIEW -->
+            <div id="listView" class="d-none">
+                {% for restaurant in restaurants %}
+                    <div class="card border-0 shadow-sm mb-3 hover-lift">
+                        <div class="row g-0">
+                            <div class="col-md-3">
+                                {% if restaurant.image_path %}
+                                    <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
+                                         class="img-fluid rounded-start h-100" alt="{{ restaurant.name }}" style="object-fit: cover; min-height: 200px;">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/restaurant_default.jpg') }}" 
+                                         class="img-fluid rounded-start h-100" alt="Default image" style="object-fit: cover; min-height: 200px;">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-9">
+                                <div class="card-body h-100 d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title fw-bold mb-0">{{ restaurant.name }}</h5>
+                                        {% if restaurant.is_favorite %}
+                                        <div class="btn btn-sm btn-outline-danger favorite-tag">
+                                            <i class="fas fa-heart text-danger fw-bold"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ restaurant.location }}
+                                    </p>
+                                    <div class="mb-3">
+                                        <div class="d-flex align-items-center">
+                                            {% for i in range(1, 6) %}
+                                                {% if i <= restaurant.average_rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% elif i - 0.5 <= restaurant.average_rating %}
+                                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-2 fw-bold">{{ '%.1f'|format(restaurant.average_rating) }}</span>
+                                            <span class="ms-2 text-muted small">({{ restaurant.total_reviews }} reviews)</span>
+                                        </div>
+                                    </div>
+                                    <p class="card-text text-muted flex-grow-1">{{ restaurant.description|truncate(150) }}</p>
+                                    <div class="mt-auto">
+                                        <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" 
+                                           class="btn btn-primary">
+                                            <i class="fas fa-utensils me-2"></i>View Menu
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         {% else %}
-            <div class="col-12 text-center py-5">
-                <div class="alert alert-info">
-                    <h4>NO RESTAURANTS FOUND</h4>
-                    <p class="mb-0">Try adjusting your search criteria.</p>
+            <!-- NO RESULTS STATE -->
+            <div class="text-center py-5">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-search fa-4x text-muted"></i>
+                        </div>
+                        <h3 class="mb-3">No restaurants found</h3>
+                        <p class="text-muted mb-4">
+                            {% if query or location or cuisines or vegetarian_only %}
+                                Try adjusting your search criteria or filters
+                            {% else %}
+                                No restaurants are available at the moment
+                            {% endif %}
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary">
+                                <i class="fas fa-refresh me-2"></i>View All Restaurants
+                            </a>
+                            <a href="{{ url_for('customer.dashboard') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-home me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.hover-lift {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.restaurant-card {
+    transition: all 0.3s ease;
+}
+
+.restaurant-card:hover {
+    border-color: #007bff;
+}
+
+.cuisine-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cuisine-chip {
+    margin: 0;
+}
+
+.cuisine-chip .form-check-input {
+    display: none;
+}
+
+.cuisine-chip .form-check-label {
+    padding: 8px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.cuisine-chip .form-check-input:checked + .form-check-label {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.cuisine-chip .form-check-label:hover {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+.favorite-tag {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    cursor: default;
+}
+
+.badge {
+    font-size: 0.8rem;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Custom scrollbar for cuisine chips */
+.cuisine-chips-container::-webkit-scrollbar {
+    height: 4px;
+}
+
+.cuisine-chips-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.cuisine-chips-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.cuisine-chips-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
 {% endblock %}
+
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var dropdownBtn = document.getElementById('cuisineDropdown');
-    function clearCuisines(){
-        document.querySelectorAll('.dropdown-menu input[type="checkbox"]').forEach(function(cb){ cb.checked = false; });
-        updateCuisineLabel();
-    }
-    function updateCuisineLabel(){
-        var checks = document.querySelectorAll('.dropdown-menu input[type="checkbox"]');
-        var selected = [];
-        checks.forEach(function(cb){ if (cb.checked) { var lbl = document.querySelector('label[for="'+cb.id+'"]'); if (lbl) { selected.push(lbl.textContent.trim()); } } });
-        var headerClearIcon = document.querySelector('#cuisineDropdown .clear-cuisines-icon');
-        if (headerClearIcon) { headerClearIcon.classList.toggle('d-none', selected.length === 0); }
-    }
-    document.addEventListener('change', function(e){
-        if (e.target && e.target.matches('.dropdown-menu input[type="checkbox"]')) {
-            updateCuisineLabel();
+    // Initialize view toggle
+    const gridViewBtn = document.getElementById('gridViewBtn');
+    const listViewBtn = document.getElementById('listViewBtn');
+    const gridView = document.getElementById('gridView');
+    const listView = document.getElementById('listView');
+    
+    // Set default view
+    let currentView = 'grid';
+    
+    // View toggle functionality
+    window.toggleView = function(view) {
+        if (view === 'grid') {
+            gridView.classList.remove('d-none');
+            listView.classList.add('d-none');
+            gridViewBtn.classList.remove('btn-outline-secondary');
+            gridViewBtn.classList.add('btn-outline-primary');
+            listViewBtn.classList.remove('btn-outline-primary');
+            listViewBtn.classList.add('btn-outline-secondary');
+            currentView = 'grid';
+        } else {
+            gridView.classList.add('d-none');
+            listView.classList.remove('d-none');
+            listViewBtn.classList.remove('btn-outline-secondary');
+            listViewBtn.classList.add('btn-outline-primary');
+            gridViewBtn.classList.remove('btn-outline-primary');
+            gridViewBtn.classList.add('btn-outline-secondary');
+            currentView = 'list';
         }
-    });
-    updateCuisineLabel();
-    var headerClear = document.querySelector('#cuisineDropdown .clear-cuisines-icon');
-    if (headerClear) {
-        headerClear.addEventListener('click', function(e){
-            e.preventDefault();
-            e.stopPropagation();
-            clearCuisines();
+    };
+    
+    // Auto-submit form on cuisine selection
+    document.querySelectorAll('.cuisine-chip .form-check-input').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            setTimeout(function() {
+                document.getElementById('searchForm').submit();
+            }, 300);
         });
-    }
+    });
+    
+    // Auto-submit form on dietary restriction change
+    document.querySelector('select[name="vegetarian_only"]').addEventListener('change', function() {
+        document.getElementById('searchForm').submit();
+    });
+    
+    // Add loading state to search button
+    document.getElementById('searchForm').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('input[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+        submitBtn.disabled = true;
+    });
 });
 </script>
 {% endblock %}
