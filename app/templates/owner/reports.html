@@ -4,17 +4,41 @@
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="mb-4">RESTAURANT REPORTS</h1>
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 fw-bold mb-1 text-dark">
+                        <i class="fas fa-chart-line text-primary me-2"></i>Restaurant Reports
+                    </h1>
+                    <p class="text-muted mb-0">Analyze your restaurant performance and business insights</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <!-- FILTER OPTIONS -->
-    <div class="card border-0 shadow mb-4">
+    <!-- Enhanced Filter Options -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-filter me-2"></i>Select Restaurant for Reports
+            </h5>
+        </div>
         <div class="card-body">
-            <form method="GET" action="{{ url_for('owner.reports') }}">
+            <form method="GET" action="{{ url_for('owner.reports') }}" id="reportsForm">
                 <div class="row g-3">
                     <div class="col-md-8">
-                        <label for="restaurant_id" class="form-label">Select Restaurant</label>
-                        <select id="restaurant_id" name="restaurant_id" class="form-select">
-                            <option value="">All Restaurants</option>
+                        <label for="restaurant_id" class="form-label fw-semibold">
+                            <i class="fas fa-store text-muted me-1"></i>Restaurant
+                        </label>
+                        <select id="restaurant_id" name="restaurant_id" class="form-select" onchange="document.getElementById('reportsForm').submit()">
+                            <option value="">Select a restaurant to view reports</option>
                             {% for r in restaurants %}
                                 <option value="{{ r.id }}" {% if restaurant_id|string == r.id|string %}selected{% endif %}>
                                     {{ r.name }}
@@ -23,7 +47,9 @@
                         </select>
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">VIEW REPORTS</button>
+                        <button type="submit" class="btn btn-primary w-100" id="reportsBtn">
+                            <i class="fas fa-chart-bar me-1"></i>Generate Reports
+                        </button>
                     </div>
                 </div>
             </form>
@@ -31,111 +57,192 @@
     </div>
     
     {% if restaurant_id %}
-        <!-- SUMMARY STATS -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-4 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-icon text-primary">
-                            <i class="fas fa-chart-line"></i>
+        <!-- Restaurant Info Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="mb-1 fw-bold text-dark">
+                                    <i class="fas fa-chart-bar text-primary me-2"></i>Performance Overview
+                                </h4>
+                                <p class="text-muted mb-0">
+                                    {% for r in restaurants %}
+                                        {% if r.id|string == restaurant_id|string %}
+                                            Detailed analytics for <strong>{{ r.name }}</strong>
+                                        {% endif %}
+                                    {% endfor %}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <span class="badge bg-primary bg-opacity-90 px-3 py-2">
+                                    <i class="fas fa-calendar me-1"></i>Last 30 Days
+                                </span>
+                            </div>
                         </div>
-                        <h2 class="stat-value">{{ orders_count }}</h2>
-                        <p class="stat-label">TOTAL ORDERS</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-icon text-primary">
-                            <i class="fas fa-rupee-sign"></i>
-                        </div>
-                        <h2 class="stat-value">₹{{ '%.2f'|format(total_revenue) }}</h2>
-                        <p class="stat-label">TOTAL REVENUE</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-icon text-primary">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h2 class="stat-value">{{ '%.1f'|format(avg_rating) }}</h2>
-                        <p class="stat-label">AVERAGE RATING</p>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- TOP MENU ITEMS -->
-        <div class="card border-0 shadow mb-4">
-            <div class="card-header bg-white py-3">
-                <h4 class="mb-0">TOP ORDERED ITEMS</h4>
+        <!-- Enhanced Summary Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm h-100 stats-card hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="stats-icon bg-primary bg-opacity-10 rounded-circle mx-auto mb-3">
+                            <i class="fas fa-shopping-cart fa-2x text-primary"></i>
+                        </div>
+                        <h2 class="stats-value text-primary mb-2">{{ orders_count }}</h2>
+                        <p class="stats-label text-muted mb-3">Total Orders</p>
+                        <div class="stats-trend">
+                            <i class="fas fa-arrow-up text-success me-1"></i>
+                            <span class="text-success small">Last 30 days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm h-100 stats-card hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="stats-icon bg-success bg-opacity-10 rounded-circle mx-auto mb-3">
+                            <i class="fas fa-rupee-sign fa-2x text-success"></i>
+                        </div>
+                        <h2 class="stats-value text-success mb-2">₹{{ '%.2f'|format(total_revenue) }}</h2>
+                        <p class="stats-label text-muted mb-3">Total Revenue</p>
+                        <div class="stats-trend">
+                            <i class="fas fa-chart-line text-success me-1"></i>
+                            <span class="text-success small">Revenue generated</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm h-100 stats-card hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="stats-icon bg-warning bg-opacity-10 rounded-circle mx-auto mb-3">
+                            <i class="fas fa-star fa-2x text-warning"></i>
+                        </div>
+                        <h2 class="stats-value text-warning mb-2">{{ '%.1f'|format(avg_rating) }}</h2>
+                        <p class="stats-label text-muted mb-3">Average Rating</p>
+                        <div class="stats-trend">
+                            <i class="fas fa-users text-warning me-1"></i>
+                            <span class="text-warning small">Customer satisfaction</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Menu Items -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-gradient-light border-0">
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="fas fa-utensils text-primary me-2"></i>Top Ordered Items
+                </h5>
+                <p class="text-muted mb-0 small">Most popular menu items by order count</p>
             </div>
             <div class="card-body">
                 {% if top_items %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>ITEM</th>
-                                    <th class="text-end">TOTAL ORDERS</th>
+                                    <th class="border-0 py-3">
+                                        <i class="fas fa-list text-muted me-2"></i>Menu Item
+                                    </th>
+                                    <th class="border-0 py-3 text-end">
+                                        <i class="fas fa-shopping-cart text-muted me-2"></i>Total Orders
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in top_items %}
-                                    <tr>
-                                        <td>{{ item.name }}</td>
-                                        <td class="text-end">{{ item.total }}</td>
+                                    <tr class="table-row-hover">
+                                        <td class="py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rank-badge me-3">
+                                                    <span class="badge bg-primary bg-opacity-90 rounded-circle">
+                                                        {{ loop.index }}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-semibold">{{ item.name }}</h6>
+                                                    <small class="text-muted">Menu Item</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 text-end">
+                                            <span class="fw-bold text-primary">{{ item.total }}</span>
+                                            <small class="text-muted d-block">orders</small>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <div class="text-center py-4">
-                        <p class="mb-0">NO ORDER DATA AVAILABLE</p>
+                    <div class="text-center py-5">
+                        <div class="empty-state">
+                            <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                            <h5 class="fw-bold text-dark mb-2">No Order Data Available</h5>
+                            <p class="text-muted mb-0">Start receiving orders to see popular menu items here.</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </div>
         
-        <!-- CHARTS -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card border-0 shadow mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h4 class="mb-0">ORDERS BY DAY</h4>
+        <!-- Analytics Charts -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-gradient-light border-0">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="fas fa-chart-bar text-primary me-2"></i>Orders by Day
+                        </h5>
+                        <p class="text-muted mb-0 small">Daily order volume over the last 30 days</p>
                     </div>
                     <div class="card-body">
                         {% if daily_orders %}
-                            <div class="chart-container">
+                            <div class="chart-container" style="height: 300px;">
                                 <canvas id="ordersChart"></canvas>
                             </div>
                         {% else %}
-                            <div class="text-center py-4">
-                                <p class="mb-0">NO ORDER DATA AVAILABLE</p>
+                            <div class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                                    <h5 class="fw-bold text-dark mb-2">No Order Data Available</h5>
+                                    <p class="text-muted mb-0">Start receiving orders to see daily trends here.</p>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card border-0 shadow mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h4 class="mb-0">REVENUE TREND</h4>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-gradient-light border-0">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="fas fa-chart-line text-success me-2"></i>Revenue Trend
+                        </h5>
+                        <p class="text-muted mb-0 small">Daily revenue generated over the last 30 days</p>
                     </div>
                     <div class="card-body">
                         {% if daily_revenue %}
-                            <div class="chart-container">
+                            <div class="chart-container" style="height: 300px;">
                                 <canvas id="revenueChart"></canvas>
                             </div>
                         {% else %}
-                            <div class="text-center py-4">
-                                <p class="mb-0">NO REVENUE DATA AVAILABLE</p>
+                            <div class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                    <h5 class="fw-bold text-dark mb-2">No Revenue Data Available</h5>
+                                    <p class="text-muted mb-0">Start generating revenue to see trends here.</p>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
@@ -143,11 +250,22 @@
             </div>
         </div>
     {% else %}
-        <div class="card border-0 shadow">
+        <!-- Enhanced Empty State -->
+        <div class="card border-0 shadow-sm">
             <div class="card-body text-center py-5">
-                <i class="fas fa-chart-pie fa-4x text-muted mb-3"></i>
-                <h3>SELECT A RESTAURANT TO VIEW REPORTS</h3>
-                <p class="mb-0">Choose a restaurant from the dropdown menu above to view detailed reports.</p>
+                <div class="empty-state">
+                    <i class="fas fa-chart-pie fa-4x text-muted mb-4"></i>
+                    <h3 class="fw-bold text-dark mb-3">Select a Restaurant to View Reports</h3>
+                    <p class="text-muted mb-4">Choose a restaurant from the dropdown menu above to view detailed analytics and performance insights.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('owner.restaurants') }}" class="btn btn-primary">
+                            <i class="fas fa-store me-1"></i>Manage Restaurants
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     {% endif %}
@@ -236,4 +354,223 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
+
+<style>
+/* Enhanced UI Styles for Owner Reports Page */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.bg-gradient-light {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.hover-lift {
+    transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.stats-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stats-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.stats-trend {
+    font-size: 0.8rem;
+}
+
+.table-row-hover {
+    transition: all 0.2s ease;
+}
+
+.table-row-hover:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: translateX(5px);
+}
+
+.rank-badge .badge {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.empty-state {
+    padding: 2rem;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Form Enhancements */
+.form-select, .form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button Enhancements */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Card Enhancements */
+.card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Loading State */
+.btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn.loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stats-value {
+        font-size: 2rem;
+    }
+    
+    .stats-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .chart-container {
+        height: 250px !important;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+}
+
+/* Chart Enhancements */
+.chart-container canvas {
+    border-radius: 8px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form when restaurant selection changes
+    const reportsForm = document.getElementById('reportsForm');
+    const reportsBtn = document.getElementById('reportsBtn');
+    
+    if (reportsForm && reportsBtn) {
+        // Add loading state to reports button
+        reportsForm.addEventListener('submit', function() {
+            reportsBtn.classList.add('loading');
+            reportsBtn.disabled = true;
+        });
+        
+        // Remove loading state when page loads (in case of back button)
+        reportsBtn.classList.remove('loading');
+        reportsBtn.disabled = false;
+    }
+    
+    // Add smooth scrolling for better UX
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Add hover effects to stats cards
+    document.querySelectorAll('.stats-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add hover effects to table rows
+    document.querySelectorAll('.table-row-hover').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'rgba(0, 123, 255, 0.05)';
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
+</script>
 {% endblock %}
