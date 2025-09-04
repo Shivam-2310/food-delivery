@@ -30,15 +30,28 @@
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <h5 class="card-title">Order Status</h5>
-                                    <form method="POST" action="{{ url_for('owner.order_detail', id=order.id) }}">
-                                        {{ form.hidden_tag() }}
-                                        <div class="mb-3">
-                                            {{ form.status(class="form-select") }}
+                                    {% if order.status == 'completed' %}
+                                        <div class="alert alert-success mb-3">
+                                            <i class="fas fa-check-circle me-2"></i>
+                                            <strong>Order Completed</strong>
+                                            <p class="mb-0 mt-2">This order has been completed and cannot be modified further.</p>
                                         </div>
                                         <div class="d-grid">
-                                            {{ form.submit(class="btn btn-primary") }}
+                                            <button class="btn btn-secondary" disabled>
+                                                <i class="fas fa-lock"></i> STATUS LOCKED
+                                            </button>
                                         </div>
-                                    </form>
+                                    {% else %}
+                                        <form method="POST" action="{{ url_for('owner.order_detail', id=order.id) }}">
+                                            {{ form.hidden_tag() }}
+                                            <div class="mb-3">
+                                                {{ form.status(class="form-select") }}
+                                            </div>
+                                            <div class="d-grid">
+                                                {{ form.submit(class="btn btn-primary") }}
+                                            </div>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
