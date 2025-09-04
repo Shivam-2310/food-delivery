@@ -129,8 +129,23 @@ a {
 .menu-item-badge {
     position: absolute;
     top: 10px;
-    right: 10px;
     z-index: 1;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* SPECIFIC POSITIONING FOR BADGES */
+.menu-item-badge.badge-left {
+    left: 10px !important;
+    right: auto !important;
+}
+
+.menu-item-badge.badge-right {
+    right: 10px !important;
+    left: auto !important;
 }
 
 /* CART & ORDER SUMMARY */

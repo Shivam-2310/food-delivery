@@ -390,8 +390,8 @@ def cart():
             )
             db.session.add(order_item)
             
-            # UPDATE TIMES ORDERED TODAY COUNT
-            menu_item.times_ordered_today += item['quantity']
+            # UPDATE TIMES ORDERED TODAY COUNT WITH AUTOMATIC DAILY RESET
+            menu_item.increment_daily_order_count(item['quantity'])
         
         db.session.commit()
         

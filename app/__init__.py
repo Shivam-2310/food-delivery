@@ -3,7 +3,7 @@ JUSTEAT FOOD ORDERING APPLICATION
 """
 
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -67,6 +67,45 @@ def create_app(test_config=None):
     app.register_blueprint(customer_controller.bp)
     app.register_blueprint(owner_controller.bp)
     app.register_blueprint(main_controller.bp)
+    
+    # CONTEXT PROCESSOR FOR AUTOMATIC DAILY RESET
+    @app.before_request
+    def ensure_daily_reset():
+        """ENSURE ALL MENU ITEMS ARE CHECKED FOR DAILY RESET ON EVERY REQUEST"""
+        # Skip database operations for static files and non-HTML requests
+        if request.endpoint and (
+            request.endpoint.startswith('static') or 
+            request.endpoint.startswith('_internal') or
+            request.path.startswith('/static/')
+        ):
+            return
+        
+        try:
+            from app.models.menu import MenuItem
+            from datetime import datetime
+            
+            # Get today's date
+            today = datetime.utcnow().date()
+            
+            # Find all menu items that need daily reset
+            items_to_reset = MenuItem.query.filter(MenuItem.last_order_date != today).all()
+            
+            if items_to_reset:
+                # Reset all items that need it
+                for item in items_to_reset:
+                    item.times_ordered_today = 0
+                    item.last_order_date = today
+                
+                # Commit the changes
+                db.session.commit()
+        except Exception as e:
+            # Don't let daily reset errors break the app
+            app.logger.warning(f"Daily reset check failed: {e}")
+            # Rollback any partial changes
+            try:
+                db.session.rollback()
+            except:
+                pass
     
     # ERROR HANDLERS
     @app.errorhandler(404)

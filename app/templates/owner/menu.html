@@ -40,18 +40,18 @@
                      <div class="card border-0 shadow">
                          <div class="card-body">
                              <h5 class="mb-3">MENU LEGEND</h5>
-                             <div class="mb-2 d-flex align-items-center">
-                                 <span class="badge badge-special me-2">TODAY'S SPECIAL</span>
-                                 <small>Featured items</small>
-                             </div>
-                             <div class="mb-2 d-flex align-items-center">
-                                 <span class="badge badge-deal me-2">DEAL OF THE DAY</span>
-                                 <small>Daily special deal</small>
-                             </div>
-                             <div class="mb-0 d-flex align-items-center">
-                                 <span class="badge badge-mostly-ordered me-2">MOSTLY ORDERED</span>
-                                 <small>Popular items (>10 orders today)</small>
-                             </div>
+                                                         <div class="mb-2 d-flex align-items-center">
+                                <span class="badge badge-special me-2">TODAY'S SPECIAL</span>
+                                <small>Featured items (top right)</small>
+                            </div>
+                            <div class="mb-2 d-flex align-items-center">
+                                <span class="badge badge-deal me-2">DEAL OF THE DAY</span>
+                                <small>Daily special deal (top right)</small>
+                            </div>
+                            <div class="mb-0 d-flex align-items-center">
+                                <span class="badge badge-mostly-ordered me-2">MOSTLY ORDERED</span>
+                                <small>Popular items (>10 orders today, top left)</small>
+                            </div>
                          </div>
                      </div>
                  </div>
@@ -69,12 +69,16 @@
                             {% for item in items %}
                                 <div class="col-md-6">
                                     <div class="card h-100 menu-item-card shadow-sm">
+                                        <!-- MOSTLY ORDERED BADGE - TOP LEFT -->
                                         {% if item.is_mostly_ordered %}
-                                            <div class="menu-item-badge badge bg-success">MOSTLY ORDERED</div>
+                                            <div class="menu-item-badge badge bg-success badge-left">MOSTLY ORDERED</div>
+                                        {% endif %}
+                                        
+                                        <!-- DEAL OF THE DAY & TODAY'S SPECIAL BADGES - TOP RIGHT -->
+                                        {% if item.is_deal_of_day %}
+                                            <div class="menu-item-badge badge bg-danger badge-right">DEAL OF THE DAY</div>
                                         {% elif item.is_special %}
-                                            <div class="menu-item-badge badge bg-primary">TODAY'S SPECIAL</div>
-                                        {% elif item.is_deal_of_day %}
-                                            <div class="menu-item-badge badge bg-danger">DEAL OF THE DAY</div>
+                                            <div class="menu-item-badge badge bg-primary badge-right">TODAY'S SPECIAL</div>
                                         {% endif %}
                                         
                                         {% if item.image_path %}

@@ -238,12 +238,16 @@
                             {% for item in items %}
                                 <div class="col-md-6">
                                     <div class="card h-100 menu-item-card shadow-sm">
+                                        <!-- MOSTLY ORDERED BADGE - TOP LEFT -->
                                         {% if item.is_mostly_ordered %}
-                                            <div class="menu-item-badge badge bg-success">MOSTLY ORDERED</div>
+                                            <div class="menu-item-badge badge bg-success badge-left">MOSTLY ORDERED</div>
+                                        {% endif %}
+                                        
+                                        <!-- DEAL OF THE DAY & TODAY'S SPECIAL BADGES - TOP RIGHT -->
+                                        {% if item.is_deal_of_day %}
+                                            <div class="menu-item-badge badge bg-danger badge-right">DEAL OF THE DAY</div>
                                         {% elif item.is_special %}
-                                            <div class="menu-item-badge badge bg-primary">TODAY'S SPECIAL</div>
-                                        {% elif item.is_deal_of_day %}
-                                            <div class="menu-item-badge badge bg-danger">DEAL OF THE DAY</div>
+                                            <div class="menu-item-badge badge bg-primary badge-right">TODAY'S SPECIAL</div>
                                         {% endif %}
                                         
                                         {% if item.image_path %}
