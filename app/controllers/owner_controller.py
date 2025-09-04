@@ -71,8 +71,28 @@ def restaurants():
     """
     RESTAURANT MANAGEMENT ROUTE
     """
-    restaurants = Restaurant.query.filter_by(owner_id=current_user.owner_profile.id).all()
-    return render_template('owner/restaurants.html', restaurants=restaurants)
+    # GET SEARCH PARAMETERS
+    search_query = request.args.get('search', '').strip()
+    
+    # BUILD QUERY TO GET RESTAURANTS FOR OWNER
+    query = Restaurant.query.filter_by(owner_id=current_user.owner_profile.id)
+    
+    # APPLY SEARCH FILTER
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Restaurant.name.ilike(f'%{search_query}%'),
+                Restaurant.location.ilike(f'%{search_query}%'),
+                Restaurant.description.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # GET RESTAURANTS SORTED BY NAME
+    restaurants = query.order_by(Restaurant.name.asc()).all()
+    
+    return render_template('owner/restaurants.html', 
+                           restaurants=restaurants,
+                           search_query=search_query)
 
 @bp.route('/restaurant/new', methods=['GET', 'POST'])
 @login_required

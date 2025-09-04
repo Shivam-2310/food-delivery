@@ -4,37 +4,70 @@
 
 {% block content %}
 <div class="container py-4">
-    <!-- HEADER SECTION -->
-    <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold text-primary mb-3">My Restaurants</h1>
-        <p class="lead text-muted">Manage your restaurant portfolio and settings</p>
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 fw-bold mb-1 text-dark">
+                        <i class="fas fa-store text-primary me-2"></i>My Restaurants
+                    </h1>
+                    <p class="text-muted mb-0">Manage your restaurant portfolio and settings</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Add New Restaurant
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <!-- RESTAURANTS COUNT AND ACTIONS -->
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h4 class="mb-1">
-                {% if restaurants %}
-                    {{ restaurants|length }} Restaurant{{ 's' if restaurants|length != 1 else '' }}
-                {% else %}
-                    No Restaurants
-                {% endif %}
-            </h4>
-            <p class="text-muted mb-0">
-                {% if restaurants %}
-                    Manage your restaurant portfolio
-                {% else %}
-                    Start by adding your first restaurant
-                {% endif %}
-            </p>
+    
+    <!-- Enhanced Search Options -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-search me-2"></i>Search Restaurants
+            </h5>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-            </a>
-            <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-success">
-                <i class="fas fa-plus me-2"></i>Add New Restaurant
-            </a>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('owner.restaurants') }}" id="searchForm">
+                <div class="row g-3">
+                    <div class="col-md-10">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-search text-muted me-1"></i>Search Restaurants
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" 
+                                   name="search" 
+                                   class="form-control" 
+                                   placeholder="Search by name, location, or description..."
+                                   value="{{ search_query }}"
+                                   id="searchInput">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="d-flex gap-2 w-100">
+                            <button type="submit" class="btn btn-primary flex-grow-1" id="searchBtn">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            {% if search_query %}
+                                <a href="{{ url_for('owner.restaurants') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -147,25 +180,30 @@
             {% endfor %}
         </div>
     {% else %}
-        <!-- ENHANCED EMPTY STATE -->
-        <div class="text-center py-5">
-            <div class="card border-0 shadow-lg">
-                <div class="card-body py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-store fa-4x text-muted"></i>
-                    </div>
-                    <h3 class="mb-3">No Restaurants Yet</h3>
-                    <p class="text-muted mb-4">
-                        Start your journey by adding your first restaurant to the platform
-                    </p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-success btn-lg">
-                            <i class="fas fa-plus me-2"></i>Add Your First Restaurant
-                        </a>
-                        <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                        </a>
-                    </div>
+        <!-- Enhanced Empty State -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="empty-state">
+                    <i class="fas fa-store fa-4x text-muted mb-4"></i>
+                    <h3 class="fw-bold text-dark mb-3">No Restaurants Found</h3>
+                    {% if search_query %}
+                        <p class="text-muted mb-4">No restaurants match your current search criteria. Try adjusting your search terms to see more results.</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{{ url_for('owner.restaurants') }}" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>Clear Search
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-4">You haven't added any restaurants yet. Start building your restaurant portfolio today!</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                            </a>
+                            <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-success">
+                                <i class="fas fa-plus me-1"></i>Add Your First Restaurant
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -257,5 +295,138 @@
 .text-danger {
     color: #dc3545 !important;
 }
+
+/* Search Enhancements */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.input-group-text {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-right: none;
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    border-left: none;
+}
+
+/* Loading State */
+.btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn.loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Mobile Responsive for Search */
+@media (max-width: 768px) {
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group-text {
+        border-right: 2px solid #e9ecef;
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .input-group .form-control {
+        border-left: 2px solid #e9ecef;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+    }
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form when search input changes (with debounce)
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    
+    if (searchForm && searchInput && searchBtn) {
+        let searchTimeout;
+        
+        // Add loading state to search button
+        searchForm.addEventListener('submit', function() {
+            searchBtn.classList.add('loading');
+            searchBtn.disabled = true;
+        });
+        
+        // Remove loading state when page loads (in case of back button)
+        searchBtn.classList.remove('loading');
+        searchBtn.disabled = false;
+        
+        // Auto-search with debounce (optional - uncomment if you want live search)
+        /*
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                searchForm.submit();
+            }, 500);
+        });
+        */
+    }
+    
+    // Add smooth scrolling for better UX
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Add hover effects to restaurant cards
+    document.querySelectorAll('.restaurant-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
 {% endblock %}
