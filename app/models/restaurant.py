@@ -107,3 +107,26 @@ class Restaurant(db.Model):
         """Human readable cuisines string for UI."""
         cuisines = self.get_cuisines()
         return ", ".join(cuisines) if cuisines else ""
+    
+    def get_dietary_options(self):
+        """Get available dietary options for this restaurant based on menu items."""
+        dietary_options = {
+            'has_vegetarian': False,
+            'has_vegan': False,
+            'has_guilt_free': False,
+            'has_non_vegetarian': False
+        }
+        
+        for item in self.menu_items:
+            if item.is_vegetarian:
+                dietary_options['has_vegetarian'] = True
+            else:
+                dietary_options['has_non_vegetarian'] = True
+            
+            if item.is_vegan:
+                dietary_options['has_vegan'] = True
+            
+            if item.is_guilt_free:
+                dietary_options['has_guilt_free'] = True
+        
+        return dietary_options

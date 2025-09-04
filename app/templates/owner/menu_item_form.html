@@ -127,4 +127,94 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nonVegCheckbox = document.querySelector('input[name="is_vegetarian"]');
+    const veganCheckbox = document.querySelector('input[name="is_vegan"]');
+    const form = document.querySelector('form');
+    
+    function validateDietaryPreferences() {
+        if (nonVegCheckbox && veganCheckbox) {
+            if (nonVegCheckbox.checked && veganCheckbox.checked) {
+                // Show Bootstrap toast notification
+                showToast('A dish cannot be both Vegan and Non-Vegetarian at the same time!', 'error');
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : 'info'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        // Create toast container if it doesn't exist
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Add toast to container
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        // Show the toast
+        const toastElement = toastContainer.lastElementChild;
+        const toast = new bootstrap.Toast(toastElement, {
+            autohide: true,
+            delay: 5000
+        });
+        toast.show();
+        
+        // Remove toast element after it's hidden
+        toastElement.addEventListener('hidden.bs.toast', function() {
+            toastElement.remove();
+        });
+    }
+    
+    // Add event listeners to checkboxes
+    if (nonVegCheckbox) {
+        nonVegCheckbox.addEventListener('change', function() {
+            if (this.checked && veganCheckbox && veganCheckbox.checked) {
+                validateDietaryPreferences();
+                // Uncheck the other checkbox to prevent conflict
+                veganCheckbox.checked = false;
+            }
+        });
+    }
+    
+    if (veganCheckbox) {
+        veganCheckbox.addEventListener('change', function() {
+            if (this.checked && nonVegCheckbox && nonVegCheckbox.checked) {
+                validateDietaryPreferences();
+                // Uncheck the other checkbox to prevent conflict
+                nonVegCheckbox.checked = false;
+            }
+        });
+    }
+    
+    // Validate on form submission
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateDietaryPreferences()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -281,6 +281,14 @@ def new_menu_item(id):
     form = MenuItemForm()
     
     if form.validate_on_submit():
+        # VALIDATE DIETARY PREFERENCES - CAN'T BE VEGAN AND NON-VEGETARIAN
+        is_non_vegetarian = form.is_vegetarian.data  # True when "Non-Vegetarian" is checked
+        is_vegan = form.is_vegan.data
+        
+        if is_vegan and is_non_vegetarian:
+            flash("ERROR: A dish cannot be both Vegan and Non-Vegetarian at the same time!", "error")
+            return render_template('owner/menu_item_form.html', form=form, restaurant=restaurant)
+        
         # HANDLE IMAGE UPLOAD
         image_filename = None
         if form.image.data:
@@ -341,6 +349,14 @@ def edit_menu_item(id):
     form = MenuItemForm()
     
     if form.validate_on_submit():
+        # VALIDATE DIETARY PREFERENCES - CAN'T BE VEGAN AND NON-VEGETARIAN
+        is_non_vegetarian = form.is_vegetarian.data  # True when "Non-Vegetarian" is checked
+        is_vegan = form.is_vegan.data
+        
+        if is_vegan and is_non_vegetarian:
+            flash("ERROR: A dish cannot be both Vegan and Non-Vegetarian at the same time!", "error")
+            return render_template('owner/menu_item_form.html', form=form, restaurant=restaurant, menu_item=menu_item)
+        
         # HANDLE IMAGE UPLOAD
         if form.image.data:
             image_filename = save_image(form.image.data)
