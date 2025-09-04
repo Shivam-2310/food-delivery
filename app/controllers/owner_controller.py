@@ -267,13 +267,15 @@ def new_menu_item(id):
             image_filename = save_image(form.image.data)
         
         # CREATE MENU ITEM
+        # Note: form.is_vegetarian.data is True when "Non-Vegetarian" is checked
+        # So we need to invert it for the database field
         menu_item = MenuItem(
             restaurant_id=restaurant.id,
             name=form.name.data,
             description=form.description.data,
             price=form.price.data,
             category=form.category.data,
-            is_vegetarian=form.is_vegetarian.data,
+            is_vegetarian=not form.is_vegetarian.data,  # Invert: unchecked = vegetarian, checked = non-vegetarian
             is_special=form.is_special.data,
             is_deal_of_day=form.is_deal_of_day.data,
             image_path=image_filename
@@ -332,7 +334,7 @@ def edit_menu_item(id):
         menu_item.description = form.description.data
         menu_item.price = form.price.data
         menu_item.category = form.category.data
-        menu_item.is_vegetarian = form.is_vegetarian.data
+        menu_item.is_vegetarian = not form.is_vegetarian.data  # Invert: unchecked = vegetarian, checked = non-vegetarian
         menu_item.is_special = form.is_special.data
         
         # HANDLE DEAL OF THE DAY STATUS
@@ -358,7 +360,8 @@ def edit_menu_item(id):
         form.description.data = menu_item.description
         form.price.data = menu_item.price
         form.category.data = menu_item.category
-        form.is_vegetarian.data = menu_item.is_vegetarian
+        # Invert the vegetarian status for the form since "Non-Vegetarian" is checked when item is non-veg
+        form.is_vegetarian.data = not menu_item.is_vegetarian
         form.is_special.data = menu_item.is_special
         form.is_deal_of_day.data = menu_item.is_deal_of_day
     

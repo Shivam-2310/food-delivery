@@ -114,6 +114,8 @@
                                                 <h5 class="card-title mb-1">{{ item.name }}</h5>
                                                 {% if item.is_vegetarian %}
                                                     <span class="badge bg-success"><i class="fas fa-leaf"></i> VEG</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger"><i class="fas fa-drumstick-bite"></i> NON-VEG</span>
                                                 {% endif %}
                                             </div>
                                             <p class="card-text small text-muted mb-3">{{ item.description }}</p>
