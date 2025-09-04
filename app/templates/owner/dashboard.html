@@ -238,6 +238,62 @@
         </div>
     </div>
     
+    <!-- RECENT DISH RATINGS SECTION -->
+    {% if recent_dish_ratings %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-warning text-dark py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-star fa-2x me-3"></i>
+                            <div>
+                                <h3 class="mb-1">Recent Dish Ratings</h3>
+                                <p class="mb-0 opacity-75">Latest customer ratings for your dishes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        {% for rating in recent_dish_ratings %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h6 class="card-title mb-1">{{ rating.menu_item.name }}</h6>
+                                                <small class="text-muted">{{ rating.menu_item.restaurant.name }}</small>
+                                            </div>
+                                            <div class="text-warning">
+                                                {% for i in range(1, 6) %}
+                                                    {% if i <= rating.rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>{{ rating.order.customer.name }}
+                                            </small>
+                                            <small class="text-muted">
+                                                {{ rating.created_at.strftime('%m/%d') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <!-- ENHANCED RESTAURANTS LIST -->
     <div class="row">
         <div class="col-12">
@@ -282,9 +338,35 @@
                                                     <p class="card-text small text-muted mb-2">
                                                         <i class="fas fa-utensils me-1"></i>{{ restaurant.cuisines_display }}
                                                     </p>
-                                                    <p class="card-text small text-muted mb-3">
+                                                    <p class="card-text small text-muted mb-2">
                                                         <i class="fas fa-map-marker-alt me-1"></i>{{ restaurant.location }}
                                                     </p>
+                                                    
+                                                    <!-- DISH RATING STATISTICS -->
+                                                    {% if dish_rating_stats[restaurant.id]['total_ratings'] > 0 %}
+                                                        <div class="mb-3">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="text-warning me-2">
+                                                                    {% for i in range(1, 6) %}
+                                                                        {% if i <= dish_rating_stats[restaurant.id]['average_rating'] %}
+                                                                            <i class="fas fa-star" style="font-size: 0.9em;"></i>
+                                                                        {% else %}
+                                                                            <i class="far fa-star" style="font-size: 0.9em;"></i>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </div>
+                                                                <small class="text-muted">
+                                                                    {{ dish_rating_stats[restaurant.id]['average_rating'] }} 
+                                                                    ({{ dish_rating_stats[restaurant.id]['total_ratings'] }} dish ratings)
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="mb-3">
+                                                            <small class="text-muted">No dish ratings yet</small>
+                                                        </div>
+                                                    {% endif %}
+                                                    
                                                     <div class="mt-auto">
                                                         <div class="d-flex gap-2 flex-wrap">
                                                             <a href="{{ url_for('owner.restaurant_detail', id=restaurant.id) }}" 

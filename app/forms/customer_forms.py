@@ -48,6 +48,25 @@ class OrderFeedbackForm(FlaskForm):
     message = TextAreaField('Your Feedback', validators=[DataRequired(), Length(min=10, max=1000)])
     submit = SubmitField('SUBMIT FEEDBACK')
 
+class DishRatingForm(FlaskForm):
+    """
+    FORM FOR RATING INDIVIDUAL DISHES
+    """
+    def __init__(self, order_items=None, *args, **kwargs):
+        super(DishRatingForm, self).__init__(*args, **kwargs)
+        if order_items:
+            for item in order_items:
+                field_name = f'dish_rating_{item.menu_item_id}'
+                setattr(self, field_name, SelectField(
+                    f'Rate {item.menu_item.name}',
+                    choices=[(1, '★'), (2, '★★'), (3, '★★★'), (4, '★★★★'), (5, '★★★★★')],
+                    validators=[DataRequired()],
+                    coerce=int,
+                    default=5
+                ))
+    
+    submit = SubmitField('SUBMIT DISH RATINGS')
+
 class SearchForm(FlaskForm):
     """
     FORM FOR SEARCHING RESTAURANTS AND MENU ITEMS

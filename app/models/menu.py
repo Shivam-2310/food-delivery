@@ -68,3 +68,23 @@ class MenuItem(db.Model):
         self.times_ordered_today = 0
         self.last_order_date = datetime.utcnow().date()
     
+    @property
+    def average_rating(self):
+        """Calculate average rating for this menu item."""
+        from sqlalchemy import func
+        from app import db
+        from app.models.dish_rating import DishRating
+        avg_value = db.session.query(func.avg(DishRating.rating)).filter(
+            DishRating.menu_item_id == self.id
+        ).scalar()
+        return round(avg_value, 1) if avg_value else 0
+    
+    @property
+    def total_ratings(self):
+        """Get total number of ratings for this menu item."""
+        from app.models.dish_rating import DishRating
+        from app import db
+        return db.session.query(DishRating).filter(
+            DishRating.menu_item_id == self.id
+        ).count()
+    

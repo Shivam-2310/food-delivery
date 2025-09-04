@@ -205,7 +205,27 @@
                                             </div>
                                             <p class="card-text small text-muted mb-3">{{ item.description }}</p>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <div class="fw-bold">₹{{ '%.2f'|format(item.price) }}</div>
+                                                <div>
+                                                    <div class="fw-bold">₹{{ '%.2f'|format(item.price) }}</div>
+                                                    {% if item.total_ratings > 0 %}
+                                                        <div class="mt-1">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="text-warning me-1">
+                                                                    {% for i in range(1, 6) %}
+                                                                        {% if i <= item.average_rating %}
+                                                                            <i class="fas fa-star" style="font-size: 0.8em;"></i>
+                                                                        {% else %}
+                                                                            <i class="far fa-star" style="font-size: 0.8em;"></i>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </div>
+                                                                <small class="text-muted">{{ "%.1f"|format(item.average_rating) }} ({{ item.total_ratings }})</small>
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <small class="text-muted">No ratings yet</small>
+                                                    {% endif %}
+                                                </div>
                                                 <div class="d-flex gap-2">
                                                     <a href="{{ url_for('owner.edit_menu_item', id=item.id) }}" class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-edit"></i> EDIT

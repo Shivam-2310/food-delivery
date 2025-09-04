@@ -10,6 +10,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db
 from app.models import Restaurant, MenuItem, Order, OrderItem, Feedback
+from app.models.dish_rating import DishRating
 from app.forms.owner_forms import RestaurantForm, MenuItemForm, OrderUpdateForm, FeedbackResponseForm
 from app.utils.decorators import owner_required
 from sqlalchemy import func, desc
@@ -59,10 +60,34 @@ def dashboard():
                 Feedback.is_resolved == False)\
         .all()
     
+    # GET RECENT DISH RATINGS
+    recent_dish_ratings = DishRating.query\
+        .join(MenuItem, DishRating.menu_item_id == MenuItem.id)\
+        .filter(MenuItem.restaurant_id.in_([r.id for r in restaurants]))\
+        .order_by(DishRating.created_at.desc()).limit(10).all()
+    
+    # GET DISH RATING STATISTICS
+    dish_rating_stats = {}
+    for restaurant in restaurants:
+        total_dish_ratings = DishRating.query.join(MenuItem).filter(
+            MenuItem.restaurant_id == restaurant.id
+        ).count()
+        
+        avg_dish_rating = db.session.query(func.avg(DishRating.rating)).join(MenuItem).filter(
+            MenuItem.restaurant_id == restaurant.id
+        ).scalar() or 0
+        
+        dish_rating_stats[restaurant.id] = {
+            'total_ratings': total_dish_ratings,
+            'average_rating': round(avg_dish_rating, 1) if avg_dish_rating else 0
+        }
+    
     return render_template('owner/dashboard.html',
                            restaurants=restaurants,
                            recent_orders=recent_orders,
-                           pending_feedback=pending_feedback)
+                           pending_feedback=pending_feedback,
+                           recent_dish_ratings=recent_dish_ratings,
+                           dish_rating_stats=dish_rating_stats)
 
 @bp.route('/restaurants')
 @login_required
@@ -151,10 +176,16 @@ def restaurant_detail(id):
     from app.models.feedback import Feedback
     feedback_list = Feedback.query.filter_by(restaurant_id=restaurant.id).order_by(Feedback.created_at.desc()).all()
     
+    # GET DISH RATINGS FOR THIS RESTAURANT
+    dish_ratings_list = DishRating.query.join(MenuItem).filter(
+        MenuItem.restaurant_id == restaurant.id
+    ).order_by(DishRating.created_at.desc()).all()
+    
     return render_template('owner/restaurant_detail.html',
                            restaurant=restaurant,
                            menu_by_category=menu_by_category,
-                           feedback_list=feedback_list)
+                           feedback_list=feedback_list,
+                           dish_ratings_list=dish_ratings_list)
 
 @bp.route('/restaurant/<int:id>/edit', methods=['GET', 'POST'])
 @login_required

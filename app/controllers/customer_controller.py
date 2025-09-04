@@ -9,9 +9,10 @@ from flask_login import login_required, current_user
 from sqlalchemy import or_, and_
 from app import db
 from app.models import User, Customer, Restaurant, MenuItem, Order, OrderItem, Feedback
+from app.models.dish_rating import DishRating
 from app.models import STATUS_COMPLETED
 from app.models import STATUS_PENDING, STATUS_CONFIRMED, STATUS_PREPARING, STATUS_READY, STATUS_COMPLETED
-from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, OrderFeedbackForm, SearchForm
+from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, OrderFeedbackForm, SearchForm, DishRatingForm
 from app.utils.decorators import customer_required
 from app.utils.constants import CUISINE_OPTIONS
 
@@ -528,55 +529,108 @@ def order_detail(id):
     # GET EXISTING FEEDBACK IF ANY
     existing_feedback = Feedback.query.filter_by(order_id=order.id).first()
     
+    # GET EXISTING DISH RATINGS IF ANY
+    existing_dish_ratings = DishRating.query.filter_by(order_id=order.id).all()
+    existing_dish_ratings_dict = {rating.menu_item_id: rating.rating for rating in existing_dish_ratings}
+    
     # CHECK IF ORDER IS COMPLETED AND CAN RECEIVE FEEDBACK
     can_give_feedback = order.status == STATUS_COMPLETED and not existing_feedback
+    can_rate_dishes = order.status == STATUS_COMPLETED and len(existing_dish_ratings) == 0
     
     # ALWAYS CREATE A FEEDBACK FORM
     feedback_form = OrderFeedbackForm()
+    
+    # CREATE DISH RATING FORM
+    dish_rating_form = DishRatingForm(order_items=order.items)
     
     # HANDLE FEEDBACK SUBMISSION IF CAN GIVE FEEDBACK
     if can_give_feedback:
         
         if request.method == 'POST':
-            # Get data directly from the form
-            rating = request.form.get('rating', '5')
-            message = request.form.get('message', '')
-            
-            try:
-                rating = int(rating)
-                if rating < 1 or rating > 5:
-                    rating = 5  # Default to 5 if out of range
-            except (ValueError, TypeError):
-                rating = 5  # Default to 5 if conversion error
-            
-            # Message is optional, set to empty string if not provided
-            message = message.strip() if message else ""
+            # Check if this is dish rating submission
+            if 'dish_rating_submit' in request.form:
+                # Handle dish ratings
+                dish_ratings_submitted = []
+                for item in order.items:
+                    rating_key = f'dish_rating_{item.menu_item_id}'
+                    rating_value = request.form.get(rating_key, '5')
+                    
+                    try:
+                        rating_value = int(rating_value)
+                        if rating_value < 1 or rating_value > 5:
+                            rating_value = 5
+                    except (ValueError, TypeError):
+                        rating_value = 5
+                    
+                    dish_ratings_submitted.append({
+                        'menu_item_id': item.menu_item_id,
+                        'rating': rating_value
+                    })
                 
-            # Double-check if feedback wasn't submitted by another request while this one was processing
-            check_existing = Feedback.query.filter_by(order_id=order.id).first()
-            if check_existing:
-                flash("Feedback has already been submitted for this order.", "info")
+                # Check if dish ratings already exist
+                existing_dish_ratings_check = DishRating.query.filter_by(order_id=order.id).first()
+                if existing_dish_ratings_check:
+                    flash("Dish ratings have already been submitted for this order.", "info")
+                    return redirect(url_for('customer.order_detail', id=order.id))
+                
+                # Save dish ratings
+                for dish_rating_data in dish_ratings_submitted:
+                    dish_rating = DishRating(
+                        order_id=order.id,
+                        customer_id=current_user.customer_profile.id,
+                        restaurant_id=order.restaurant_id,
+                        menu_item_id=dish_rating_data['menu_item_id'],
+                        rating=dish_rating_data['rating']
+                    )
+                    db.session.add(dish_rating)
+                
+                db.session.commit()
+                flash("YOUR DISH RATINGS HAVE BEEN SUBMITTED. THANK YOU!", "success")
                 return redirect(url_for('customer.order_detail', id=order.id))
+            
+            else:
+                # Handle order feedback
+                rating = request.form.get('rating', '5')
+                message = request.form.get('message', '')
                 
-            feedback = Feedback(
-                order_id=order.id,
-                customer_id=current_user.customer_profile.id,
-                restaurant_id=order.restaurant_id,
-                rating=rating,
-                message=message
-            )
-            
-            db.session.add(feedback)
-            db.session.commit()
-            
-            flash("YOUR FEEDBACK HAS BEEN SUBMITTED. THANK YOU!", "success")
-            return redirect(url_for('customer.order_detail', id=order.id))
+                try:
+                    rating = int(rating)
+                    if rating < 1 or rating > 5:
+                        rating = 5  # Default to 5 if out of range
+                except (ValueError, TypeError):
+                    rating = 5  # Default to 5 if conversion error
+                
+                # Message is optional, set to empty string if not provided
+                message = message.strip() if message else ""
+                    
+                # Double-check if feedback wasn't submitted by another request while this one was processing
+                check_existing = Feedback.query.filter_by(order_id=order.id).first()
+                if check_existing:
+                    flash("Feedback has already been submitted for this order.", "info")
+                    return redirect(url_for('customer.order_detail', id=order.id))
+                    
+                feedback = Feedback(
+                    order_id=order.id,
+                    customer_id=current_user.customer_profile.id,
+                    restaurant_id=order.restaurant_id,
+                    rating=rating,
+                    message=message
+                )
+                
+                db.session.add(feedback)
+                db.session.commit()
+                
+                flash("YOUR FEEDBACK HAS BEEN SUBMITTED. THANK YOU!", "success")
+                return redirect(url_for('customer.order_detail', id=order.id))
     
     return render_template('customer/order_detail.html', 
                           order=order,
                           can_give_feedback=can_give_feedback,
+                          can_rate_dishes=can_rate_dishes,
                           feedback_form=feedback_form,
-                          existing_feedback=existing_feedback)
+                          dish_rating_form=dish_rating_form,
+                          existing_feedback=existing_feedback,
+                          existing_dish_ratings=existing_dish_ratings_dict)
 
 # Review route removed - now using only order-specific feedback
 

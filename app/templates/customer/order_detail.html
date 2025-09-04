@@ -130,6 +130,173 @@
         </div>
     </div>
     
+    <!-- DISH RATINGS SECTION -->
+    {% if order.status == 'completed' and can_rate_dishes %}
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header bg-success text-white py-3">
+                <h4 class="mb-0">RATE YOUR DISHES</h4>
+            </div>
+            <div class="card-body">
+                <p class="mb-4">How would you rate each dish you ordered?</p>
+                
+                <form method="POST">
+                    <div class="row g-3">
+                        {% for item in order.items %}
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            {% if item.menu_item.image_path %}
+                                                <img src="{{ url_for('static', filename='uploads/' + item.menu_item.image_path) }}" 
+                                                     class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="{{ item.menu_item.name }}">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='images/menu_item_default.jpg') }}" 
+                                                     class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="Default image">
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-1">{{ item.menu_item.name }}</h6>
+                                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center">
+                                            <p class="mb-2">Rate this dish:</p>
+                                            <div class="d-flex justify-content-center">
+                                                <input type="hidden" id="dish_rating_{{ item.menu_item_id }}" name="dish_rating_{{ item.menu_item_id }}" value="5">
+                                                <div class="dish-star-rating" data-item-id="{{ item.menu_item_id }}">
+                                                    {% for i in range(1, 6) %}
+                                                        <i class="far fa-star text-warning fa-2x mx-1 dish-rating-star" 
+                                                           data-value="{{ i }}" 
+                                                           data-item-id="{{ item.menu_item_id }}"></i>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <button type="submit" name="dish_rating_submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-star me-2"></i> SUBMIT DISH RATINGS
+                        </button>
+                    </div>
+                </form>
+                
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const dishRatingStars = document.querySelectorAll('.dish-rating-star');
+                        
+                        dishRatingStars.forEach(star => {
+                            star.style.cursor = 'pointer';
+                            
+                            star.addEventListener('click', function() {
+                                const value = this.getAttribute('data-value');
+                                const itemId = this.getAttribute('data-item-id');
+                                const ratingInput = document.getElementById(`dish_rating_${itemId}`);
+                                ratingInput.value = value;
+                                updateDishStars(itemId, value);
+                            });
+                            
+                            star.addEventListener('mouseover', function() {
+                                const value = this.getAttribute('data-value');
+                                const itemId = this.getAttribute('data-item-id');
+                                highlightDishStars(itemId, value);
+                            });
+                        });
+                        
+                        document.querySelectorAll('.dish-star-rating').forEach(rating => {
+                            rating.addEventListener('mouseout', function() {
+                                const itemId = this.getAttribute('data-item-id');
+                                const selectedRating = document.getElementById(`dish_rating_${itemId}`).value;
+                                updateDishStars(itemId, selectedRating);
+                            });
+                        });
+                        
+                        function updateDishStars(itemId, rating) {
+                            const stars = document.querySelectorAll(`[data-item-id="${itemId}"]`);
+                            stars.forEach(star => {
+                                const value = star.getAttribute('data-value');
+                                if (value <= rating) {
+                                    star.classList.remove('far');
+                                    star.classList.add('fas');
+                                } else {
+                                    star.classList.remove('fas');
+                                    star.classList.add('far');
+                                }
+                            });
+                        }
+                        
+                        function highlightDishStars(itemId, rating) {
+                            const stars = document.querySelectorAll(`[data-item-id="${itemId}"]`);
+                            stars.forEach(star => {
+                                const value = star.getAttribute('data-value');
+                                if (value <= rating) {
+                                    star.classList.remove('far');
+                                    star.classList.add('fas');
+                                } else {
+                                    star.classList.remove('fas');
+                                    star.classList.add('far');
+                                }
+                            });
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- DISH RATINGS DISPLAY (if already submitted) -->
+    {% if order.status == 'completed' and existing_dish_ratings %}
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header bg-success text-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">YOUR DISH RATINGS</h4>
+                    <span class="badge bg-light text-success">SUBMITTED</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% for item in order.items %}
+                        {% if item.menu_item_id in existing_dish_ratings %}
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            {% if item.menu_item.image_path %}
+                                                <img src="{{ url_for('static', filename='uploads/' + item.menu_item.image_path) }}" 
+                                                     class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="{{ item.menu_item.name }}">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='images/menu_item_default.jpg') }}" 
+                                                     class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="Default image">
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-1">{{ item.menu_item.name }}</h6>
+                                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center">
+                                            <div class="rating-display">
+                                                {% set rating = existing_dish_ratings[item.menu_item_id] %}
+                                                {% for i in range(1, 6) %}
+                                                    <i class="{% if i <= rating %}fas{% else %}far{% endif %} fa-star text-warning fa-2x mx-1"></i>
+                                                {% endfor %}
+                                            </div>
+                                            <p class="text-muted mt-2">You rated this dish {{ rating }} out of 5 stars</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <!-- FEEDBACK & ACTIONS -->
     <div id="feedback" class="feedback-section pt-3 mt-2"></div>
     
