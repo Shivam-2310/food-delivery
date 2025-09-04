@@ -4,76 +4,141 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>MY RESTAURANTS</h1>
-        <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-success">
-            <i class="fas fa-plus"></i> ADD NEW RESTAURANT
-        </a>
+    <!-- HEADER SECTION -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">My Restaurants</h1>
+        <p class="lead text-muted">Manage your restaurant portfolio and settings</p>
     </div>
     
-    <!-- RESTAURANTS LIST -->
+    <!-- RESTAURANTS COUNT AND ACTIONS -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h4 class="mb-1">
+                {% if restaurants %}
+                    {{ restaurants|length }} Restaurant{{ 's' if restaurants|length != 1 else '' }}
+                {% else %}
+                    No Restaurants
+                {% endif %}
+            </h4>
+            <p class="text-muted mb-0">
+                {% if restaurants %}
+                    Manage your restaurant portfolio
+                {% else %}
+                    Start by adding your first restaurant
+                {% endif %}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add New Restaurant
+            </a>
+        </div>
+    </div>
+    
+    <!-- ENHANCED RESTAURANTS LIST -->
     {% if restaurants %}
         <div class="row g-4">
             {% for restaurant in restaurants %}
                 <div class="col-lg-4 col-md-6">
-                    <div class="card h-100 restaurant-card shadow">
+                    <div class="card h-100 restaurant-card border-0 shadow-lg hover-lift">
                         {% if restaurant.image_path %}
                             <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
-                                 class="card-img-top" alt="{{ restaurant.name }}">
+                                 class="card-img-top" alt="{{ restaurant.name }}" style="height: 250px; object-fit: cover;">
                         {% else %}
                             <img src="{{ url_for('static', filename='images/restaurant_default.jpg') }}" 
-                                 class="card-img-top" alt="Default image">
+                                 class="card-img-top" alt="Default image" style="height: 250px; object-fit: cover;">
                         {% endif %}
-                        <div class="card-body">
-                            <h4 class="card-title mb-1">{{ restaurant.name }}</h4>
-                            <p class="text-muted mb-2">{{ restaurant.cuisines_display }} | {{ restaurant.location }}</p>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold mb-2">{{ restaurant.name }}</h5>
+                            <p class="text-muted mb-2 small">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ restaurant.location }}
+                            </p>
                             <div class="mb-3">
-                                {% for i in range(1, 6) %}
-                                    {% if i <= restaurant.average_rating %}
-                                        <i class="fas fa-star text-warning"></i>
-                                    {% elif i - 0.5 <= restaurant.average_rating %}
-                                        <i class="fas fa-star-half-alt text-warning"></i>
-                                    {% else %}
-                                        <i class="far fa-star text-warning"></i>
-                                    {% endif %}
-                                {% endfor %}
-                                <small class="text-muted">({{ restaurant.total_reviews }})</small>
+                                <div class="d-flex align-items-center">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= restaurant.average_rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% elif i - 0.5 <= restaurant.average_rating %}
+                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2 fw-bold">{{ '%.1f'|format(restaurant.average_rating) }}</span>
+                                    <span class="ms-2 text-muted small">({{ restaurant.total_reviews }} reviews)</span>
+                                </div>
                             </div>
-                            <p class="card-text">{{ restaurant.description|truncate(100) }}</p>
-                            <div class="d-flex flex-wrap gap-2 mt-3">
-                                <a href="{{ url_for('owner.restaurant_detail', id=restaurant.id) }}" class="btn btn-outline-primary">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </a>
-                                <a href="{{ url_for('owner.restaurant_menu', id=restaurant.id) }}" class="btn btn-outline-primary">
-                                    <i class="fas fa-utensils"></i> MENU
-                                </a>
-                                <a href="{{ url_for('owner.edit_restaurant', id=restaurant.id) }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-edit"></i> EDIT
-                                </a>
-                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ restaurant.id }}">
-                                    <i class="fas fa-trash"></i> DELETE
-                                </button>
+                            <p class="card-text small text-muted flex-grow-1">{{ restaurant.description|truncate(100) }}</p>
+                            <div class="mt-auto">
+                                <div class="d-grid gap-2">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <a href="{{ url_for('owner.restaurant_detail', id=restaurant.id) }}" 
+                                               class="btn btn-primary btn-sm w-100">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                        </div>
+                                        <div class="col-6">
+                                            <a href="{{ url_for('owner.restaurant_menu', id=restaurant.id) }}" 
+                                               class="btn btn-success btn-sm w-100">
+                                                <i class="fas fa-utensils me-1"></i>Menu
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <a href="{{ url_for('owner.edit_restaurant', id=restaurant.id) }}" 
+                                               class="btn btn-outline-secondary btn-sm w-100">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </a>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-outline-danger btn-sm w-100" 
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ restaurant.id }}">
+                                                <i class="fas fa-trash me-1"></i>Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- DELETE MODAL -->
+                <!-- ENHANCED DELETE MODAL -->
                 <div class="modal fade" id="deleteModal{{ restaurant.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ restaurant.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="deleteModalLabel{{ restaurant.id }}">CONFIRM DELETE</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="deleteModalLabel{{ restaurant.id }}">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div class="modal-body">
-                                <p>ARE YOU SURE YOU WANT TO DELETE THE RESTAURANT "{{ restaurant.name }}"?</p>
-                                <p class="text-danger mb-0">THIS ACTION CANNOT BE UNDONE!</p>
+                            <div class="modal-body p-4">
+                                <div class="text-center mb-4">
+                                    <i class="fas fa-trash fa-3x text-danger mb-3"></i>
+                                    <h4 class="text-dark">Delete Restaurant</h4>
+                                </div>
+                                <p class="text-center mb-3">
+                                    Are you sure you want to delete <strong>"{{ restaurant.name }}"</strong>?
+                                </p>
+                                <div class="alert alert-danger border-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Warning:</strong> This action cannot be undone. All menu items, orders, and reviews associated with this restaurant will be permanently deleted.
+                                </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">CANCEL</button>
-                                <form action="{{ url_for('owner.delete_restaurant', id=restaurant.id) }}" method="POST">
-                                    <button type="submit" class="btn btn-danger">DELETE</button>
+                            <div class="modal-footer border-0 p-4">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </button>
+                                <form action="{{ url_for('owner.delete_restaurant', id=restaurant.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash me-1"></i>Delete Restaurant
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -82,16 +147,115 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="card border-0 shadow">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-store fa-4x text-muted mb-3"></i>
-                <h3>YOU DON'T HAVE ANY RESTAURANTS YET.</h3>
-                <p class="mb-4">GET STARTED BY ADDING YOUR FIRST RESTAURANT.</p>
-                <a href="{{ url_for('owner.restaurant_new') }}" class="btn btn-success btn-lg">
-                    <i class="fas fa-plus"></i> ADD YOUR FIRST RESTAURANT
-                </a>
+        <!-- ENHANCED EMPTY STATE -->
+        <div class="text-center py-5">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-store fa-4x text-muted"></i>
+                    </div>
+                    <h3 class="mb-3">No Restaurants Yet</h3>
+                    <p class="text-muted mb-4">
+                        Start your journey by adding your first restaurant to the platform
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('owner.new_restaurant') }}" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus me-2"></i>Add Your First Restaurant
+                        </a>
+                        <a href="{{ url_for('owner.dashboard') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     {% endif %}
 </div>
+
+<style>
+.hover-lift {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.restaurant-card {
+    transition: all 0.3s ease;
+}
+
+.restaurant-card:hover {
+    border-color: #007bff;
+}
+
+.badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.modal-content {
+    border-radius: 15px;
+}
+
+.modal-header {
+    border-radius: 15px 15px 0 0;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+</style>
 {% endblock %}
