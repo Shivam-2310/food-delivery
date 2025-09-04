@@ -173,8 +173,8 @@
                                                     <img src="{{ url_for('static', filename='uploads/' + restaurant.image_path) }}" 
                                                          class="img-fluid rounded-start h-100 w-100 object-fit-cover" alt="{{ restaurant.name }}">
                                                 {% else %}
-                                                    <img src="https://placehold.co/600x400?text=No+Image" 
-                                                         class="img-fluid rounded-start h-100 w-100 object-fit-cover" alt="No Image">
+                                                    <img src="{{ url_for('static', filename='images/restaurant_default.jpg') }}" 
+                                                         class="img-fluid rounded-start h-100 w-100 object-fit-cover" alt="Default image">
                                                 {% endif %}
                                             </div>
                                             <div class="col-md-8">
