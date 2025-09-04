@@ -106,4 +106,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // ADD TO CART BUTTON HANDLER FOR FEATURED ITEMS
+    document.querySelectorAll('.add-to-cart').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            var itemId = this.getAttribute('data-item-id');
+            var itemName = this.getAttribute('data-item-name');
+            var itemPrice = this.getAttribute('data-item-price');
+            
+            if (!itemId) {
+                console.error('Item ID not found');
+                return;
+            }
+            
+            // GET QUANTITY FROM THE QUANTITY INPUT (DEFAULT TO 1 IF NOT FOUND)
+            var quantityInput = this.closest('.card-body').querySelector('.quantity-input');
+            var quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+            
+            // REDIRECT TO ADD TO CART ROUTE
+            var addToCartUrl = '/customer/add_to_cart/' + itemId + '?quantity=' + quantity;
+            window.location.href = addToCartUrl;
+        });
+    });
 });
