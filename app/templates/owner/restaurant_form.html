@@ -55,11 +55,19 @@
                                 {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">{{ form.cuisine_type.label }}</label>
-                                {{ form.cuisine_type(class="form-control") }}
-                                {% if form.cuisine_type.errors %}
+                                <label class="form-label fw-bold">{{ form.cuisines.label }}</label>
+                                <div class="form-control p-3" style="height:auto;">
+                                    {% for subfield in form.cuisines %}
+                                        <div class="form-check">
+                                            {{ subfield(class="form-check-input", id=subfield.id) }}
+                                            <label class="form-check-label" for="{{ subfield.id }}">{{ subfield.label.text }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">SELECT ONE OR MORE CUISINES</small>
+                                {% if form.cuisines.errors %}
                                     <div class="invalid-feedback d-block">
-                                        {% for error in form.cuisine_type.errors %}
+                                        {% for error in form.cuisines.errors %}
                                             {{ error }}
                                         {% endfor %}
                                     </div>

@@ -67,7 +67,7 @@ class SearchForm(FlaskForm):
     """
     query = StringField('Search', validators=[Optional(), Length(max=100)])
     location = StringField('Location', validators=[Optional(), Length(max=100)])
-    cuisine = SelectField('Cuisine', choices=[], validators=[Optional()])
+    cuisines = MultiCheckboxField('Cuisines', choices=[])
     price_min = IntegerField('Min Price', validators=[Optional(), NumberRange(min=0)])
     price_max = IntegerField('Max Price', validators=[Optional(), NumberRange(min=0)])
     vegetarian_only = SelectField('Dietary', choices=[

@@ -13,6 +13,7 @@ from app.models import Restaurant, MenuItem, Order, OrderItem, Review, Feedback
 from app.forms.owner_forms import RestaurantForm, MenuItemForm, OrderUpdateForm, FeedbackResponseForm
 from app.utils.decorators import owner_required
 from sqlalchemy import func, desc
+from app.utils.constants import CUISINE_OPTIONS
 
 bp = Blueprint('owner', __name__, url_prefix='/owner')
 logger = logging.getLogger(__name__)
@@ -81,6 +82,8 @@ def new_restaurant():
     CREATE NEW RESTAURANT ROUTE
     """
     form = RestaurantForm()
+    # Populate cuisines choices from existing cuisines in DB
+    form.cuisines.choices = [(c, c) for c in CUISINE_OPTIONS]
     
     if form.validate_on_submit():
         # HANDLE IMAGE UPLOAD
@@ -94,9 +97,10 @@ def new_restaurant():
             name=form.name.data,
             description=form.description.data,
             location=form.location.data,
-            cuisine_type=form.cuisine_type.data,
             image_path=image_filename
         )
+        # Save cuisines list (also sets cuisine_type for compatibility)
+        restaurant.set_cuisines(form.cuisines.data)
         
         db.session.add(restaurant)
         db.session.commit()
@@ -105,7 +109,7 @@ def new_restaurant():
         flash(f"RESTAURANT '{restaurant.name}' CREATED SUCCESSFULLY.", "success")
         return redirect(url_for('owner.restaurant_detail', id=restaurant.id))
     
-    return render_template('owner/restaurant_form.html', form=form, title="ADD NEW RESTAURANT")
+    return render_template('owner/restaurant_form.html', form=form, title="ADD NEW RESTAURANT", CUISINE_OPTIONS=CUISINE_OPTIONS)
 
 @bp.route('/restaurant/<int:id>')
 @login_required
@@ -150,6 +154,8 @@ def edit_restaurant(id):
         abort(403)
     
     form = RestaurantForm()
+    # Populate cuisines choices
+    form.cuisines.choices = [(c, c) for c in CUISINE_OPTIONS]
     
     if form.validate_on_submit():
         # HANDLE IMAGE UPLOAD
@@ -166,7 +172,7 @@ def edit_restaurant(id):
         restaurant.name = form.name.data
         restaurant.description = form.description.data
         restaurant.location = form.location.data
-        restaurant.cuisine_type = form.cuisine_type.data
+        restaurant.set_cuisines(form.cuisines.data)
         
         db.session.commit()
         
@@ -178,12 +184,13 @@ def edit_restaurant(id):
         form.name.data = restaurant.name
         form.description.data = restaurant.description
         form.location.data = restaurant.location
-        form.cuisine_type.data = restaurant.cuisine_type
+        form.cuisines.data = restaurant.get_cuisines()
     
     return render_template('owner/restaurant_form.html', 
                            form=form, 
                            restaurant=restaurant,
-                           title="EDIT RESTAURANT")
+                           title="EDIT RESTAURANT",
+                           CUISINE_OPTIONS=CUISINE_OPTIONS)
 
 @bp.route('/restaurant/<int:id>/delete', methods=['POST'])
 @login_required

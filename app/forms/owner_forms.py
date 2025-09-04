@@ -4,8 +4,15 @@ RESTAURANT OWNER FORMS
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, TextAreaField, SubmitField, FloatField, SelectField, BooleanField
+from wtforms import StringField, TextAreaField, SubmitField, FloatField, SelectField, BooleanField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, Length, Email, NumberRange, Optional
+
+class MultiCheckboxField(SelectMultipleField):
+    """
+    CUSTOM FIELD FOR MULTIPLE CHECKBOXES
+    """
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 class RestaurantForm(FlaskForm):
     """
@@ -14,7 +21,8 @@ class RestaurantForm(FlaskForm):
     name = StringField('Restaurant Name', validators=[DataRequired(), Length(min=2, max=100)])
     description = TextAreaField('Description', validators=[DataRequired(), Length(min=10, max=500)])
     location = StringField('Location', validators=[DataRequired(), Length(min=5, max=200)])
-    cuisine_type = StringField('Cuisine Type', validators=[DataRequired(), Length(min=3, max=50)])
+    # Render cuisines as checkboxes for better UX
+    cuisines = MultiCheckboxField('Cuisines', choices=[], validators=[Optional()])
     image = FileField('Restaurant Image', validators=[
         Optional(),
         FileAllowed(['jpg', 'png', 'jpeg'], 'IMAGES ONLY (JPG, PNG)')

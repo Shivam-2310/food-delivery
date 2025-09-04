@@ -379,3 +379,31 @@ footer a:hover {
     right: 20px;
     z-index: 1050;
 }
+
+/* Filter bar and dropdown layering to avoid merging with content below */
+.filter-bar {
+    position: relative;
+    z-index: 2;
+}
+
+.filter-bar .dropdown-menu {
+    z-index: 1051; /* above cards */
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-radius: 10px;
+}
+
+.filter-bar .dropdown-toggle::after {
+    margin-left: auto;
+}
+
+/* Filter bar consistency */
+.filter-bar .form-control,
+.filter-bar .form-select,
+.filter-bar .btn {
+    min-height: calc(3.5rem + 2px);
+}
+
+.filter-bar .dropdown-toggle::after {
+    float: right;
+    margin-top: .6rem;
+}

@@ -8,38 +8,57 @@
     
     <!-- SEARCH AND FILTER SECTION -->
     <div class="card border-0 shadow mb-4">
-        <div class="card-body">
+        <div class="card-body filter-bar">
             <form method="GET" action="{{ url_for('customer.restaurants') }}" id="searchForm">
-                <div class="row g-3">
+                <div class="row g-3 align-items-stretch">
                     <div class="col-md-3">
-                        <div class="form-floating">
-                            {{ search_form.query(class="form-control", placeholder="Search", value=query) }}
+                        <div class="form-floating h-100">
+                            {{ search_form.query(class="form-control h-100", placeholder="Search", value=query) }}
                             {{ search_form.query.label }}
                         </div>
                     </div>
                     
                     <div class="col-md-3">
-                        <div class="form-floating">
-                            {{ search_form.location(class="form-control", placeholder="Location", value=location) }}
+                        <div class="form-floating h-100">
+                            {{ search_form.location(class="form-control h-100", placeholder="Location", value=location) }}
                             {{ search_form.location.label }}
                         </div>
                     </div>
                     
-                    <div class="col-md-2">
-                        <div class="form-floating">
-                            {{ search_form.cuisine(class="form-select", value=cuisine) }}
-                            {{ search_form.cuisine.label }}
+                    <div class="col-md-3">
+                        <div class="dropdown w-100 h-100">
+                            <button class="btn btn-white border form-control dropdown-toggle text-start d-flex align-items-center position-relative w-100 pe-4" 
+                                    type="button" 
+                                    id="cuisineDropdown" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false">
+                                <span>Cuisines</span>
+                                <span class="clear-cuisines-icon text-primary d-none ms-2" role="button" tabindex="0" aria-label="Clear cuisines" title="Clear">&times;</span>
+                            </button>
+                            
+                            <div class="dropdown-menu p-3 w-100" aria-labelledby="cuisineDropdown" style="max-height: 320px; overflow:auto;">
+                                <div class="row g-2">
+                                    {% for subfield in search_form.cuisines %}
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                {{ subfield(class="form-check-input", id=subfield.id) }}
+                                                <label class="form-check-label" for="{{ subfield.id }}">{{ subfield.label.text }}</label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="col-md-2">
-                        <div class="form-floating">
-                            {{ search_form.vegetarian_only(class="form-select", value=vegetarian_only) }}
+                                        
+                    <div class="col-md-3">
+                        <div class="form-floating h-100">
+                            {{ search_form.vegetarian_only(class="form-select h-100", value=vegetarian_only) }}
                             {{ search_form.vegetarian_only.label }}
                         </div>
                     </div>
                     
-                    <div class="col-md-2 d-flex align-items-center">
+                    <div class="col-md-3 d-flex align-items-center">
                         {{ search_form.submit(class="btn btn-primary w-100") }}
                     </div>
                 </div>
@@ -62,7 +81,7 @@
                         {% endif %}
                         <div class="card-body">
                             <h4 class="card-title mb-1">{{ restaurant.name }}</h4>
-                            <p class="text-muted mb-2">{{ restaurant.cuisine_type }} | {{ restaurant.location }}</p>
+                            <p class="text-muted mb-2">{{ restaurant.location }}</p>
                             <div class="rating-box mb-3">
                                 <div class="d-flex align-items-center">
                                     <div class="rating-stars me-2">
@@ -101,4 +120,36 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var dropdownBtn = document.getElementById('cuisineDropdown');
+    function clearCuisines(){
+        document.querySelectorAll('.dropdown-menu input[type="checkbox"]').forEach(function(cb){ cb.checked = false; });
+        updateCuisineLabel();
+    }
+    function updateCuisineLabel(){
+        var checks = document.querySelectorAll('.dropdown-menu input[type="checkbox"]');
+        var selected = [];
+        checks.forEach(function(cb){ if (cb.checked) { var lbl = document.querySelector('label[for="'+cb.id+'"]'); if (lbl) { selected.push(lbl.textContent.trim()); } } });
+        var headerClearIcon = document.querySelector('#cuisineDropdown .clear-cuisines-icon');
+        if (headerClearIcon) { headerClearIcon.classList.toggle('d-none', selected.length === 0); }
+    }
+    document.addEventListener('change', function(e){
+        if (e.target && e.target.matches('.dropdown-menu input[type="checkbox"]')) {
+            updateCuisineLabel();
+        }
+    });
+    updateCuisineLabel();
+    var headerClear = document.querySelector('#cuisineDropdown .clear-cuisines-icon');
+    if (headerClear) {
+        headerClear.addEventListener('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            clearCuisines();
+        });
+    }
+});
+</script>
 {% endblock %}

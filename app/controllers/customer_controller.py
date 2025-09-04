@@ -13,6 +13,7 @@ from app.models import STATUS_COMPLETED
 from app.models import STATUS_PENDING, STATUS_CONFIRMED, STATUS_PREPARING, STATUS_READY, STATUS_COMPLETED
 from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, ReviewForm, OrderFeedbackForm, SearchForm
 from app.utils.decorators import customer_required
+from app.utils.constants import CUISINE_OPTIONS
 
 bp = Blueprint('customer', __name__, url_prefix='/customer')
 logger = logging.getLogger(__name__)
@@ -79,9 +80,8 @@ def preferences():
     """
     CUSTOMER PREFERENCES ROUTE
     """
-    # GET ALL CUISINE TYPES FROM DB FOR THE FORM CHOICES
-    cuisines = db.session.query(Restaurant.cuisine_type).distinct().all()
-    cuisine_choices = [(c[0], c[0]) for c in cuisines]
+    # GET ALL CUISINE TYPES FROM DB FOR THE FORM CHOICES (supports multi-cuisine)
+    cuisine_choices = [(c, c) for c in CUISINE_OPTIONS]
     
     form = PreferencesForm()
     form.favorite_cuisines.choices = cuisine_choices
@@ -123,14 +123,15 @@ def restaurants():
     """
     search_form = SearchForm()
     
-    # GET ALL CUISINE TYPES FOR FILTER
-    cuisines = db.session.query(Restaurant.cuisine_type).distinct().all()
-    search_form.cuisine.choices = [('', 'All Cuisines')] + [(c[0], c[0]) for c in cuisines]
+    # GET ALL CUISINE TYPES FOR FILTER (multi-select)
+    search_form.cuisines.choices = [(c, c) for c in CUISINE_OPTIONS]
     
     # GET QUERY PARAMETERS
     query = request.args.get('query', '')
     location = request.args.get('location', '')
-    cuisine = request.args.get('cuisine', '')
+    cuisines_selected = request.args.getlist('cuisines')
+    # Pre-select previously chosen cuisines in the form
+    search_form.cuisines.data = cuisines_selected
     vegetarian_only = request.args.get('vegetarian_only', '')
     
     # BUILD QUERY
@@ -142,11 +143,15 @@ def restaurants():
     if location:
         restaurant_query = restaurant_query.filter(Restaurant.location.ilike(f'%{location}%'))
     
-    if cuisine:
-        restaurant_query = restaurant_query.filter(Restaurant.cuisine_type == cuisine)
+    # We will filter by cuisines after fetching, due to JSON storage
     
     # GET RESTAURANTS
     restaurants = restaurant_query.all()
+    # Filter by selected cuisines (match any)
+    if cuisines_selected:
+        sel = set([c for c in cuisines_selected if c])
+        if sel:
+            restaurants = [r for r in restaurants if sel.intersection(set(r.get_cuisines()))]
     
     # IF VEGETARIAN FILTER IS APPLIED, FURTHER FILTER RESTAURANTS WITH VEGETARIAN OPTIONS
     if vegetarian_only:
@@ -157,7 +162,7 @@ def restaurants():
                            search_form=search_form,
                            query=query,
                            location=location,
-                           cuisine=cuisine,
+                           cuisines=cuisines_selected,
                            vegetarian_only=vegetarian_only)
 
 @bp.route('/restaurant/<int:id>')
