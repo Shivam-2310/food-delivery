@@ -69,7 +69,149 @@
     
     <!-- MENU SECTION -->
     <div id="menu" class="mb-5">
-        <h2 class="mb-4">MENU</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">MENU</h2>
+            {% if menu_by_category %}
+                {% set total_items = menu_by_category.values() | map('length') | sum %}
+                <span class="badge bg-primary fs-6">{{ total_items }} {{ 'item' if total_items == 1 else 'items' }} found</span>
+            {% endif %}
+        </div>
+        
+        <!-- SEARCH AND FILTER SECTION -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" id="menuFilterForm">
+                    <div class="row g-3">
+                        <!-- SEARCH BAR -->
+                        <div class="col-md-4">
+                            <label for="search" class="form-label fw-bold">
+                                <i class="fas fa-search me-2"></i>Search Food Items
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="search" 
+                                   name="search" 
+                                   value="{{ search_query }}"
+                                   placeholder="Search by name or description...">
+                        </div>
+                        
+                        <!-- CATEGORY FILTER -->
+                        <div class="col-md-2">
+                            <label for="category" class="form-label fw-bold">
+                                <i class="fas fa-list me-2"></i>Category
+                            </label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">All Categories</option>
+                                {% for category in all_categories %}
+                                    <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>
+                                        {{ category|replace('_', ' ')|title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- VEGETARIAN FILTER -->
+                        <div class="col-md-1">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-leaf me-2"></i>Dietary
+                            </label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="vegetarianOnly" 
+                                       name="vegetarian_only" 
+                                       value="true"
+                                       {% if vegetarian_only %}checked{% endif %}>
+                                <label class="form-check-label fw-medium" for="vegetarianOnly">
+                                    Veg Only
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- PRICE RANGE SELECTOR -->
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-rupee-sign me-2"></i>Price Range
+                            </label>
+                            <div class="price-range-container">
+                                <!-- Quick Price Buttons -->
+                                <div class="price-buttons mb-3">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm price-btn" data-min="0" data-max="100">
+                                            Under ₹100
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm price-btn" data-min="100" data-max="200">
+                                            ₹100-200
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm price-btn" data-min="200" data-max="300">
+                                            ₹200-300
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm price-btn" data-min="300" data-max="500">
+                                            ₹300-500
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm price-btn" data-min="500" data-max="1000">
+                                            ₹500+
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Custom Range Inputs -->
+                                <div class="custom-range">
+                                    <div class="row g-2">
+                                        <div class="col-5">
+                                            <label class="form-label small text-muted">Min Price</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">₹</span>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       id="minPrice" 
+                                                       name="min_price" 
+                                                       value="{{ min_price or '' }}"
+                                                       placeholder="0"
+                                                       min="0" 
+                                                       max="10000"
+                                                       step="1">
+                                            </div>
+                                        </div>
+                                        <div class="col-2 d-flex align-items-end justify-content-center">
+                                            <span class="text-muted">to</span>
+                                        </div>
+                                        <div class="col-5">
+                                            <label class="form-label small text-muted">Max Price</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">₹</span>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       id="maxPrice" 
+                                                       name="max_price" 
+                                                       value="{{ max_price or '' }}"
+                                                       placeholder="1000"
+                                                       min="0" 
+                                                       max="10000"
+                                                       step="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-2"></i>Apply Filters
+                                </button>
+                                <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Clear Filters
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
         
         <div class="row">
             <div class="col-lg-3 mb-4">
@@ -87,6 +229,7 @@
             </div>
             
             <div class="col-lg-9">
+                {% if menu_by_category %}
                 {% for category, items in menu_by_category.items() %}
                     <div id="{{ category }}" class="mb-4">
                         <h3 class="border-bottom pb-2 mb-3">{{ category|replace('_', ' ')|upper }}</h3>
@@ -134,6 +277,31 @@
                         </div>
                     </div>
                 {% endfor %}
+                {% else %}
+                    <!-- NO ITEMS FOUND MESSAGE -->
+                    <div class="text-center py-5">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body py-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-search fa-4x text-muted"></i>
+                                </div>
+                                <h4 class="text-muted mb-3">No Menu Items Found</h4>
+                                <p class="text-muted mb-4">
+                                    {% if search_query or min_price or max_price or category_filter or vegetarian_only %}
+                                        No items match your current filters. Try adjusting your search criteria.
+                                    {% else %}
+                                        This restaurant doesn't have any menu items available yet.
+                                    {% endif %}
+                                </p>
+                                {% if search_query or min_price or max_price or category_filter or vegetarian_only %}
+                                    <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" class="btn btn-primary">
+                                        <i class="fas fa-times me-2"></i>Clear All Filters
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -189,4 +357,445 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Price range functionality
+    const minPriceInput = document.getElementById('minPrice');
+    const maxPriceInput = document.getElementById('maxPrice');
+    const priceButtons = document.querySelectorAll('.price-btn');
+    
+    // Function to highlight the correct button based on current values
+    function highlightActiveButton() {
+        const currentMin = parseInt(minPriceInput.value) || 0;
+        const currentMax = parseInt(maxPriceInput.value) || 0;
+        
+        // Remove active class from all buttons
+        priceButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Find and highlight the matching button
+        priceButtons.forEach(button => {
+            const buttonMin = parseInt(button.dataset.min);
+            const buttonMax = parseInt(button.dataset.max);
+            
+            if (currentMin === buttonMin && currentMax === buttonMax) {
+                button.classList.add('active');
+            }
+        });
+    }
+    
+    // Handle price button clicks
+    priceButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            priceButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Set price values
+            const minPrice = this.dataset.min;
+            const maxPrice = this.dataset.max;
+            
+            minPriceInput.value = minPrice;
+            maxPriceInput.value = maxPrice;
+            
+            // Auto-submit form
+            document.getElementById('menuFilterForm').submit();
+        });
+    });
+    
+    // Handle custom price input changes
+    minPriceInput.addEventListener('input', function() {
+        // Clear active button when manually entering values
+        priceButtons.forEach(btn => btn.classList.remove('active'));
+    });
+    
+    maxPriceInput.addEventListener('input', function() {
+        // Clear active button when manually entering values
+        priceButtons.forEach(btn => btn.classList.remove('active'));
+    });
+    
+    // Auto-submit form when custom inputs change (with debounce)
+    let priceTimeout;
+    [minPriceInput, maxPriceInput].forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(priceTimeout);
+            priceTimeout = setTimeout(() => {
+                document.getElementById('menuFilterForm').submit();
+            }, 800);
+        });
+    });
+    
+    // Initialize button highlighting on page load
+    highlightActiveButton();
+    
+    // Auto-submit form on category change
+    document.getElementById('category').addEventListener('change', function() {
+        document.getElementById('menuFilterForm').submit();
+    });
+    
+    // Auto-submit form on vegetarian filter change
+    document.getElementById('vegetarianOnly').addEventListener('change', function() {
+        document.getElementById('menuFilterForm').submit();
+    });
+    
+    // Search with debounce
+    let searchTimeout;
+    document.getElementById('search').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            document.getElementById('menuFilterForm').submit();
+        }, 500); // 500ms delay
+    });
+});
+</script>
+
+<style>
+/* Modern Price Range Selector */
+.price-range-container {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 8px;
+}
+
+/* Professional dual range slider */
+.dual-range-slider {
+    position: relative;
+    height: 20px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+}
+
+.dual-range-slider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.form-range {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: transparent;
+    border: none;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+}
+
+.range-max {
+    z-index: 3;
+}
+
+.form-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #ffffff;
+    border: 2px solid #3b82f6;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 4;
+}
+
+.form-range::-webkit-slider-thumb:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    transform: scale(1.1);
+}
+
+.form-range::-webkit-slider-thumb:active {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+}
+
+.range-max::-webkit-slider-thumb {
+    border-color: #ef4444;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.range-max::-webkit-slider-thumb:hover {
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.form-range::-moz-range-thumb {
+    background: #ffffff;
+    border: 2px solid #3b82f6;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.range-max::-moz-range-thumb {
+    border-color: #ef4444;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.form-range::-moz-range-thumb:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    transform: scale(1.1);
+}
+
+.range-max::-moz-range-thumb:hover {
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.form-range::-moz-range-thumb:active {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+}
+
+/* Track styling */
+.form-range::-webkit-slider-track {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    height: 20px;
+}
+
+.form-range::-moz-range-track {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    height: 20px;
+}
+
+.menu-item-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+.menu-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.menu-item-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+}
+
+.sticky-sidebar-container {
+    position: sticky;
+    top: 20px;
+}
+
+.rating-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 2px;
+}
+
+.rating-number {
+    color: #ffc107;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+/* Filter form styling */
+#menuFilterForm .form-control:focus,
+#menuFilterForm .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#menuFilterForm .btn {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#menuFilterForm .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Vegetarian filter styling */
+#vegetarianOnly:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+#vegetarianOnly:checked + label {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.form-check-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Professional price input styling */
+.price-input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.price-input-container .form-control {
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    color: #374151;
+}
+
+.price-input-container .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.price-input-container .form-control:hover {
+    border-color: #9ca3af;
+}
+
+/* Slider wrapper for better spacing */
+.slider-wrapper {
+    padding: 5px 0;
+}
+
+/* Price Buttons */
+.price-buttons .btn {
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    background: #ffffff;
+}
+
+.price-buttons .btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.price-buttons .btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 3px 8px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+    font-weight: 600;
+    position: relative;
+}
+
+.price-buttons .btn.active::before {
+    content: '✓';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.price-buttons .btn.active {
+    padding-left: 20px;
+}
+
+.price-buttons .btn.active:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.5);
+}
+
+/* Custom Range Inputs */
+.custom-range {
+    border-top: 1px solid #f3f4f6;
+    padding-top: 16px;
+}
+
+.custom-range .form-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.custom-range .input-group-text {
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.custom-range .form-control {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+
+.custom-range .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.custom-range .form-control:hover {
+    border-color: #9ca3af;
+}
+
+.custom-range .form-control::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+</style>
 {% endblock %}

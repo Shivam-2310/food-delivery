@@ -184,8 +184,59 @@ def restaurant_detail(id):
     """
     restaurant = Restaurant.query.get_or_404(id)
     
-    # GET MENU GROUPED BY CATEGORY
-    menu_by_category = restaurant.get_menu_by_category()
+    # GET FILTER PARAMETERS
+    search_query = request.args.get('search', '').strip()
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
+    category_filter = request.args.get('category', '')
+    vegetarian_only = request.args.get('vegetarian_only', type=bool)
+    
+    # GET ALL MENU ITEMS FOR THIS RESTAURANT
+    menu_items_query = MenuItem.query.filter_by(restaurant_id=restaurant.id)
+    
+    # APPLY SEARCH FILTER
+    if search_query:
+        menu_items_query = menu_items_query.filter(
+            MenuItem.name.ilike(f'%{search_query}%') |
+            MenuItem.description.ilike(f'%{search_query}%')
+        )
+    
+    # APPLY PRICE FILTER
+    if min_price is not None:
+        menu_items_query = menu_items_query.filter(MenuItem.price >= min_price)
+    if max_price is not None:
+        menu_items_query = menu_items_query.filter(MenuItem.price <= max_price)
+    
+    # APPLY CATEGORY FILTER
+    if category_filter:
+        menu_items_query = menu_items_query.filter(MenuItem.category == category_filter)
+    
+    # APPLY VEGETARIAN FILTER
+    if vegetarian_only:
+        menu_items_query = menu_items_query.filter(MenuItem.is_vegetarian == True)
+    
+    # GET FILTERED MENU ITEMS
+    filtered_menu_items = menu_items_query.all()
+    
+    # GROUP BY CATEGORY
+    menu_by_category = {}
+    for item in filtered_menu_items:
+        if item.category not in menu_by_category:
+            menu_by_category[item.category] = []
+        menu_by_category[item.category].append(item)
+    
+    # GET ALL CATEGORIES FOR FILTER DROPDOWN
+    all_categories = db.session.query(MenuItem.category).filter_by(restaurant_id=restaurant.id).distinct().all()
+    all_categories = [cat[0] for cat in all_categories if cat[0]]
+    
+    # GET PRICE RANGE FOR SLIDER
+    price_range = db.session.query(
+        db.func.min(MenuItem.price),
+        db.func.max(MenuItem.price)
+    ).filter_by(restaurant_id=restaurant.id).first()
+    
+    min_menu_price = price_range[0] if price_range[0] else 0
+    max_menu_price = price_range[1] if price_range[1] else 1000
     
     # CHECK IF RESTAURANT IS IN FAVORITES
     is_favorite = current_user.customer_profile.is_favorite(restaurant.id)
@@ -206,7 +257,15 @@ def restaurant_detail(id):
                            menu_by_category=menu_by_category,
                            is_favorite=is_favorite,
                            reviews=feedback_list,
-                           has_ordered=has_ordered)
+                           has_ordered=has_ordered,
+                           search_query=search_query,
+                           min_price=min_price,
+                           max_price=max_price,
+                           category_filter=category_filter,
+                           vegetarian_only=vegetarian_only,
+                           all_categories=all_categories,
+                           min_menu_price=min_menu_price,
+                           max_menu_price=max_menu_price)
 
 @bp.route('/toggle_favorite/<int:restaurant_id>')
 @login_required
