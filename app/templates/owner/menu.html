@@ -24,6 +24,23 @@
                      <div class="list-group-item bg-primary text-white fw-bold">
                          CATEGORIES
                      </div>
+                     <!-- FEATURED ITEMS LINK -->
+                     {% set featured_count = 0 %}
+                     {% for category, items in menu_by_category.items() %}
+                         {% for item in items %}
+                             {% if item.is_deal_of_day or item.is_special or item.is_mostly_ordered %}
+                                 {% set featured_count = featured_count + 1 %}
+                             {% endif %}
+                         {% endfor %}
+                     {% endfor %}
+                     {% if featured_count > 0 %}
+                     <a href="#featured" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center bg-primary text-white">
+                         <i class="fas fa-star me-2"></i>Featured Items
+                         <span class="badge bg-light text-primary rounded-pill">{{ featured_count }}</span>
+                     </a>
+                     {% endif %}
+                     
+                     <!-- REGULAR CATEGORIES -->
                      {% for category, items in menu_by_category.items() %}
                          <a href="#{{ category }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                              {{ category|replace('_', ' ')|title }}
@@ -60,7 +77,88 @@
         
         <div class="col-lg-9">
             {% if menu_by_category %}
-                {% for category, items in menu_by_category.items() %}
+            
+            <!-- FEATURED ITEMS SECTION -->
+            {% set featured_items = [] %}
+            {% for category, items in menu_by_category.items() %}
+                {% for item in items %}
+                    {% if item.is_deal_of_day or item.is_special or item.is_mostly_ordered %}
+                        {% set _ = featured_items.append(item) %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            
+            {% if featured_items %}
+            <div id="featured" class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0 text-primary">
+                        <i class="fas fa-star me-2"></i>FEATURED ITEMS
+                    </h2>
+                    <span class="badge bg-primary fs-6">{{ featured_items|length }} ITEMS</span>
+                </div>
+                <div class="row g-4">
+                    {% for item in featured_items %}
+                        <div class="col-md-6">
+                            <div class="card h-100 menu-item-card shadow-sm featured-item-card">
+                                <!-- MOSTLY ORDERED BADGE - TOP LEFT -->
+                                {% if item.is_mostly_ordered %}
+                                    <div class="menu-item-badge badge bg-success badge-left">MOSTLY ORDERED</div>
+                                {% endif %}
+                                
+                                <!-- DEAL OF THE DAY & TODAY'S SPECIAL BADGES - TOP RIGHT -->
+                                {% if item.is_deal_of_day %}
+                                    <div class="menu-item-badge badge bg-danger badge-right">DEAL OF THE DAY</div>
+                                {% elif item.is_special %}
+                                    <div class="menu-item-badge badge bg-primary badge-right">TODAY'S SPECIAL</div>
+                                {% endif %}
+                                
+                                {% if item.image_path %}
+                                    <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                                         class="card-img-top" alt="{{ item.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/menu_item_default.jpg') }}" 
+                                         class="card-img-top" alt="Default image">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title mb-1">{{ item.name }}</h5>
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        {% if item.is_vegetarian %}
+                                            <span class="badge bg-success"><i class="fas fa-leaf"></i> VEG</span>
+                                        {% else %}
+                                            <span class="badge bg-danger"><i class="fas fa-drumstick-bite"></i> NON-VEG</span>
+                                        {% endif %}
+                                        {% if item.is_vegan %}
+                                            <span class="badge bg-primary"><i class="fas fa-seedling"></i> VEGAN</span>
+                                        {% endif %}
+                                        {% if item.is_guilt_free %}
+                                            <span class="badge bg-info"><i class="fas fa-heart"></i> GUILT FREE</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="card-text small text-muted mb-3">{{ item.description }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="h5 mb-0 text-primary">₹{{ "%.2f"|format(item.price) }}</span>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('owner.edit_menu_item', id=item.id) }}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger btn-sm delete-item" 
+                                                    data-item-id="{{ item.id }}" 
+                                                    data-item-name="{{ item.name }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- REGULAR MENU CATEGORIES -->
+            {% for category, items in menu_by_category.items() %}
                     <div id="{{ category }}" class="mb-4">
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
                             <h3 class="mb-0">{{ category|replace('_', ' ')|upper }}</h3>
