@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db
-from app.models import Restaurant, MenuItem, Order, OrderItem, Review, Feedback
+from app.models import Restaurant, MenuItem, Order, OrderItem, Feedback
 from app.forms.owner_forms import RestaurantForm, MenuItemForm, OrderUpdateForm, FeedbackResponseForm
 from app.utils.decorators import owner_required
 from sqlalchemy import func, desc
@@ -127,17 +127,13 @@ def restaurant_detail(id):
     # GET MENU ITEMS GROUPED BY CATEGORY
     menu_by_category = restaurant.get_menu_by_category()
     
-    # GET REVIEWS AND FEEDBACK
-    reviews = restaurant.reviews.order_by(Review.created_at.desc()).all()
-    
-    # GET ORDER FEEDBACK FOR THIS RESTAURANT
+    # GET ORDER FEEDBACK FOR THIS RESTAURANT (primary source for ratings/comments)
     from app.models.feedback import Feedback
     feedback_list = Feedback.query.filter_by(restaurant_id=restaurant.id).order_by(Feedback.created_at.desc()).all()
     
     return render_template('owner/restaurant_detail.html',
                            restaurant=restaurant,
                            menu_by_category=menu_by_category,
-                           reviews=reviews,
                            feedback_list=feedback_list)
 
 @bp.route('/restaurant/<int:id>/edit', methods=['GET', 'POST'])

@@ -53,36 +53,19 @@ class Restaurant(db.Model):
     
     @property
     def average_rating(self):
-        """CALCULATE AVERAGE RATING FOR RESTAURANT FROM BOTH REVIEWS AND ORDER FEEDBACK"""
+        """Calculate average rating using order feedback only."""
         from sqlalchemy import func
         from app import db
         from app.models.feedback import Feedback
-        
-        # Get average from order feedback
-        feedback_avg = db.session.query(func.avg(Feedback.rating)).filter(Feedback.restaurant_id == self.id).scalar()
-        feedback_avg = feedback_avg or 0
-        
-        # Get average from reviews
-        reviews = self.reviews.all()
-        review_avg = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
-        
-        # Combine both ratings (give feedback more weight if available)
-        if feedback_avg > 0 and review_avg > 0:
-            return (feedback_avg * 2 + review_avg) / 3  # Weighted average
-        elif feedback_avg > 0:
-            return feedback_avg
-        else:
-            return review_avg
+        avg_value = db.session.query(func.avg(Feedback.rating)).filter(Feedback.restaurant_id == self.id).scalar()
+        return avg_value or 0
     
     @property
     def total_reviews(self):
-        """GET TOTAL NUMBER OF REVIEWS AND FEEDBACK"""
+        """Get total number of order feedback items (deprecate legacy reviews)."""
         from app.models.feedback import Feedback
         from app import db
-        
-        review_count = self.reviews.count()
-        feedback_count = db.session.query(Feedback).filter(Feedback.restaurant_id == self.id).count()
-        return review_count + feedback_count
+        return db.session.query(Feedback).filter(Feedback.restaurant_id == self.id).count()
     
     def get_menu_by_category(self):
         """GROUP MENU ITEMS BY CATEGORY"""
