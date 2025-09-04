@@ -119,6 +119,33 @@ def seed_data():
         
         for item in menu_items:
             db.session.add(item)
+
+    # ADDITIONAL CUSTOMER (IDEMPOTENT)
+    if User.query.filter_by(username='customer2').first() is None:
+        customer_user2 = User(username='customer2', email='customer2@example.com', role=ROLE_CUSTOMER)
+        customer_user2.set_password('password123')
+        db.session.add(customer_user2)
+        db.session.flush()
+        customer2 = Customer(
+            user_id=customer_user2.id,
+            name='Second Demo Customer',
+            address='789 Side St, Sampletown, USA',
+            phone='555-222-3333'
+        )
+        db.session.add(customer2)
+
+    # ADDITIONAL OWNER (IDEMPOTENT)
+    if User.query.filter_by(username='owner2').first() is None:
+        owner_user2 = User(username='owner2', email='owner2@example.com', role=ROLE_OWNER)
+        owner_user2.set_password('password123')
+        db.session.add(owner_user2)
+        db.session.flush()
+        owner2 = RestaurantOwner(
+            user_id=owner_user2.id,
+            name='Second Demo Owner',
+            phone='555-444-5555'
+        )
+        db.session.add(owner2)
     
     db.session.commit()
     print("DEMO DATA SEEDED SUCCESSFULLY")

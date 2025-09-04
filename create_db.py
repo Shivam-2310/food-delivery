@@ -29,6 +29,20 @@ with app.app_context():
         )
         db.session.add(customer)
         
+    # ADD A SECOND CUSTOMER (IDEMPOTENT)
+    if User.query.filter_by(username='customer2').first() is None:
+        customer_user2 = User(username='customer2', email='customer2@example.com', role=ROLE_CUSTOMER)
+        customer_user2.set_password('password123')
+        db.session.add(customer_user2)
+        db.session.flush()
+        customer2 = Customer(
+            user_id=customer_user2.id,
+            name='Anita Verma',
+            address='55 Park Street, Kolkata, India',
+            phone='9898989898'
+        )
+        db.session.add(customer2)
+
     if User.query.filter_by(username='owner').first() is None:
         owner_user = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
         owner_user.set_password('password123')
@@ -140,6 +154,19 @@ with app.app_context():
                 response="Thank you for your kind feedback! We're glad you enjoyed our Biryani. Looking forward to serving you again soon!"
             )
             db.session.add(feedback)
+
+    # ADD A SECOND OWNER (IDEMPOTENT)
+    if User.query.filter_by(username='owner2').first() is None:
+        owner_user2 = User(username='owner2', email='owner2@example.com', role=ROLE_OWNER)
+        owner_user2.set_password('password123')
+        db.session.add(owner_user2)
+        db.session.flush()
+        owner2 = RestaurantOwner(
+            user_id=owner_user2.id,
+            name='Arjun Mehta',
+            phone='9123456780'
+        )
+        db.session.add(owner2)
     
     # COMMIT ALL CHANGES
     db.session.commit()
