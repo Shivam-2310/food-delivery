@@ -130,7 +130,7 @@ def change_password():
         db.session.commit()
         
         logger.info(f"Password changed successfully for user: {current_user.username}")
-        flash("PASSWORD CHANGED SUCCESSFULLY!", "success")
+        flash("PASSWORD RESET SUCCESSFULLY!", "success")
         
         # Redirect based on user role
         if current_user.is_customer():
