@@ -44,6 +44,8 @@ class MenuItemForm(FlaskForm):
         ('side', 'Side Dish')
     ], validators=[DataRequired()])
     is_vegetarian = BooleanField('Non-Vegetarian')
+    is_vegan = BooleanField('Vegan')
+    is_guilt_free = BooleanField('Guilt Free')
     is_special = BooleanField('Mark as Today\'s Special')
     is_deal_of_day = BooleanField('Mark as Deal of the Day')
     image = FileField('Item Image', validators=[

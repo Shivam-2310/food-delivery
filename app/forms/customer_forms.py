@@ -3,7 +3,7 @@ CUSTOMER FORMS
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SubmitField, SelectField, IntegerField, SelectMultipleField, widgets
+from wtforms import StringField, TextAreaField, SubmitField, SelectField, IntegerField, SelectMultipleField, BooleanField, widgets
 from wtforms.validators import DataRequired, Length, Email, NumberRange, Optional
 
 class ProfileUpdateForm(FlaskForm):
@@ -32,10 +32,7 @@ class PreferencesForm(FlaskForm):
     dietary_restrictions = MultiCheckboxField('Dietary Restrictions', choices=[
         ('vegetarian', 'Vegetarian'),
         ('vegan', 'Vegan'),
-        ('gluten_free', 'Gluten Free'),
-        ('nut_free', 'Nut Free'),
-        ('dairy_free', 'Dairy Free'),
-        ('low_carb', 'Low Carb')
+        ('guilt_free', 'Guilt Free')
     ])
     submit = SubmitField('SAVE PREFERENCES')
 
@@ -70,8 +67,5 @@ class SearchForm(FlaskForm):
     cuisines = MultiCheckboxField('Cuisines', choices=[])
     price_min = IntegerField('Min Price', validators=[Optional(), NumberRange(min=0)])
     price_max = IntegerField('Max Price', validators=[Optional(), NumberRange(min=0)])
-    vegetarian_only = SelectField('Dietary', choices=[
-        ('', 'All Foods'),
-        ('vegetarian', 'Vegetarian Only')
-    ], validators=[Optional()])
+    apply_dietary_preferences = BooleanField('Apply My Dietary Preferences')
     submit = SubmitField('SEARCH')

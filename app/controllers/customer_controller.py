@@ -136,9 +136,12 @@ def restaurants():
     query = request.args.get('query', '')
     location = request.args.get('location', '')
     cuisines_selected = request.args.getlist('cuisines')
+    apply_dietary_preferences = request.args.get('apply_dietary_preferences', '') in ['on', 'y', 'yes', 'true']
+    
     # Pre-select previously chosen cuisines in the form
     search_form.cuisines.data = cuisines_selected
-    vegetarian_only = request.args.get('vegetarian_only', '')
+    # Pre-select dietary preferences checkbox if it was checked
+    search_form.apply_dietary_preferences.data = apply_dietary_preferences
     
     # BUILD QUERY
     restaurant_query = Restaurant.query
@@ -159,21 +162,43 @@ def restaurants():
         if sel:
             restaurants = [r for r in restaurants if sel.intersection(set(r.get_cuisines()))]
     
-    # IF VEGETARIAN FILTER IS APPLIED, FURTHER FILTER RESTAURANTS WITH VEGETARIAN OPTIONS
-    if vegetarian_only:
-        restaurants = [r for r in restaurants if any(item.is_vegetarian for item in r.menu_items)]
+    # APPLY DIETARY FILTERS WHEN USER CHECKS THE PREFERENCE BOX
+    if apply_dietary_preferences:
+        customer_dietary_restrictions = current_user.customer_profile.get_dietary_restrictions()
+        if customer_dietary_restrictions:
+            # Filter restaurants that have menu items matching user's dietary preferences
+            filtered_restaurants = []
+            for restaurant in restaurants:
+                has_matching_items = False
+                
+                # Check if restaurant has items matching any of the user's dietary preferences
+                for item in restaurant.menu_items:
+                    if 'vegetarian' in customer_dietary_restrictions and item.is_vegetarian:
+                        has_matching_items = True
+                        break
+                    elif 'vegan' in customer_dietary_restrictions and item.is_vegan:
+                        has_matching_items = True
+                        break
+                    elif 'guilt_free' in customer_dietary_restrictions and item.is_guilt_free:
+                        has_matching_items = True
+                        break
+                
+                if has_matching_items:
+                    filtered_restaurants.append(restaurant)
+            
+            restaurants = filtered_restaurants
     
     # ADD FAVORITE STATUS TO EACH RESTAURANT
     for restaurant in restaurants:
         restaurant.is_favorite = current_user.customer_profile.is_favorite(restaurant.id)
     
-    return render_template('customer/restaurants.html', 
-                           restaurants=restaurants, 
+    return render_template('customer/restaurants.html',
+                           restaurants=restaurants,
                            search_form=search_form,
                            query=query,
                            location=location,
                            cuisines=cuisines_selected,
-                           vegetarian_only=vegetarian_only)
+                           apply_dietary_preferences=apply_dietary_preferences)
 
 @bp.route('/restaurant/<int:id>')
 @login_required
@@ -189,7 +214,7 @@ def restaurant_detail(id):
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     category_filter = request.args.get('category', '')
-    vegetarian_only = request.args.get('vegetarian_only', type=bool)
+    apply_dietary_preferences = request.args.get('apply_dietary_preferences', '') in ['on', 'y', 'yes', 'true']
     
     # GET ALL MENU ITEMS FOR THIS RESTAURANT
     menu_items_query = MenuItem.query.filter_by(restaurant_id=restaurant.id)
@@ -211,9 +236,24 @@ def restaurant_detail(id):
     if category_filter:
         menu_items_query = menu_items_query.filter(MenuItem.category == category_filter)
     
-    # APPLY VEGETARIAN FILTER
-    if vegetarian_only:
-        menu_items_query = menu_items_query.filter(MenuItem.is_vegetarian == True)
+    # APPLY DIETARY FILTERS WHEN USER CHECKS THE PREFERENCE BOX
+    if apply_dietary_preferences:
+        customer_dietary_restrictions = current_user.customer_profile.get_dietary_restrictions()
+        if customer_dietary_restrictions:
+            # Build filter conditions based on user's dietary preferences
+            filter_conditions = []
+            
+            if 'vegetarian' in customer_dietary_restrictions:
+                filter_conditions.append(MenuItem.is_vegetarian == True)
+            if 'vegan' in customer_dietary_restrictions:
+                filter_conditions.append(MenuItem.is_vegan == True)
+            if 'guilt_free' in customer_dietary_restrictions:
+                filter_conditions.append(MenuItem.is_guilt_free == True)
+            
+            # Apply the filters - show items that match ANY of the user's dietary preferences
+            if filter_conditions:
+                from sqlalchemy import or_
+                menu_items_query = menu_items_query.filter(or_(*filter_conditions))
     
     # GET FILTERED MENU ITEMS
     filtered_menu_items = menu_items_query.all()
@@ -262,7 +302,7 @@ def restaurant_detail(id):
                            min_price=min_price,
                            max_price=max_price,
                            category_filter=category_filter,
-                           vegetarian_only=vegetarian_only,
+                           apply_dietary_preferences=apply_dietary_preferences,
                            all_categories=all_categories,
                            min_menu_price=min_menu_price,
                            max_menu_price=max_menu_price)
@@ -569,14 +609,25 @@ def get_recommendations(customer):
         cuisine_recommendations = [r for r in candidates if favorite_set.intersection(set(r.get_cuisines()))]
         recommendations.extend(cuisine_recommendations)
     
-    # IF VEGETARIAN IS IN PREFERENCES, FIND RESTAURANTS WITH VEGETARIAN OPTIONS
-    if 'vegetarian' in dietary_restrictions:
-        veg_restaurants = Restaurant.query.join(MenuItem).filter(
-            MenuItem.is_vegetarian == True,
-            ~Restaurant.id.in_([r.id for r in recommendations]),
-            ~Restaurant.id.in_(ordered_restaurant_ids) if ordered_restaurant_ids else True
-        ).distinct().all()
-        recommendations.extend(veg_restaurants)
+    # FIND RESTAURANTS WITH ITEMS MATCHING DIETARY PREFERENCES (for recommendations only)
+    if dietary_restrictions:
+        from sqlalchemy import or_
+        dietary_conditions = []
+        
+        if 'vegetarian' in dietary_restrictions:
+            dietary_conditions.append(MenuItem.is_vegetarian == True)
+        if 'vegan' in dietary_restrictions:
+            dietary_conditions.append(MenuItem.is_vegan == True)
+        if 'guilt_free' in dietary_restrictions:
+            dietary_conditions.append(MenuItem.is_guilt_free == True)
+        
+        if dietary_conditions:
+            dietary_restaurants = Restaurant.query.join(MenuItem).filter(
+                or_(*dietary_conditions),
+                ~Restaurant.id.in_([r.id for r in recommendations]),
+                ~Restaurant.id.in_(ordered_restaurant_ids) if ordered_restaurant_ids else True
+            ).distinct().all()
+            recommendations.extend(dietary_restaurants)
     
     # LIMIT TO 5 RECOMMENDATIONS
     return recommendations[:5]

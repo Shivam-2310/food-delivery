@@ -7,7 +7,6 @@
     <!-- HEADER SECTION -->
     <div class="text-center mb-5">
         <h1 class="display-4 fw-bold text-primary mb-3">Discover Amazing Restaurants</h1>
-        <p class="lead text-muted">Find your next favorite dining experience</p>
     </div>
     
     <!-- ENHANCED SEARCH AND FILTER SECTION -->
@@ -40,11 +39,11 @@
                         </div>
                     </div>
                     
-                    <!-- VEGETARIAN FILTER -->
+                    <!-- DIETARY PREFERENCES FILTER -->
                     <div class="col-lg-4 col-md-6">
-                        <div class="form-floating">
-                            {{ search_form.vegetarian_only(class="form-select", value=vegetarian_only) }}
-                            {{ search_form.vegetarian_only.label }}
+                        <div class="form-check mt-4">
+                            {{ search_form.apply_dietary_preferences(class="form-check-input form-check-input-lg", value="on", style="transform: scale(1.3); margin-right: 10px;") }}
+                            {{ search_form.apply_dietary_preferences.label(class="form-check-label fw-medium fs-6") }}
                         </div>
                     </div>
                     
@@ -76,21 +75,21 @@
                 </div>
                 
                 <!-- ACTIVE FILTERS DISPLAY -->
-                {% if query or location or cuisines or vegetarian_only %}
+                {% if query or location or cuisines or apply_dietary_preferences %}
                     <div class="mt-4 pt-3 border-top">
                         <div class="d-flex align-items-center flex-wrap gap-2">
                             <span class="text-muted fw-bold">Active filters:</span>
                             {% if query %}
                                 <span class="badge bg-primary">
                                     <i class="fas fa-search me-1"></i>{{ query }}
-                                    <a href="{{ url_for('customer.restaurants', location=location, cuisines=cuisines, vegetarian_only=vegetarian_only) }}" 
+                                    <a href="{{ url_for('customer.restaurants', location=location, cuisines=cuisines, apply_dietary_preferences=apply_dietary_preferences) }}" 
                                        class="text-white ms-2" style="text-decoration: none;">&times;</a>
                                 </span>
                             {% endif %}
                             {% if location %}
                                 <span class="badge bg-info">
                                     <i class="fas fa-map-marker-alt me-1"></i>{{ location }}
-                                    <a href="{{ url_for('customer.restaurants', query=query, cuisines=cuisines, vegetarian_only=vegetarian_only) }}" 
+                                    <a href="{{ url_for('customer.restaurants', query=query, cuisines=cuisines, apply_dietary_preferences=apply_dietary_preferences) }}" 
                                        class="text-white ms-2" style="text-decoration: none;">&times;</a>
                                 </span>
                             {% endif %}
@@ -98,14 +97,14 @@
                                 {% for cuisine in cuisines %}
                                     <span class="badge bg-success">
                                         <i class="fas fa-utensils me-1"></i>{{ cuisine }}
-                                        <a href="{{ url_for('customer.restaurants', query=query, location=location, cuisines=cuisines|reject('equalto', cuisine)|list, vegetarian_only=vegetarian_only) }}" 
+                                        <a href="{{ url_for('customer.restaurants', query=query, location=location, cuisines=cuisines|reject('equalto', cuisine)|list, apply_dietary_preferences=apply_dietary_preferences) }}" 
                                            class="text-white ms-2" style="text-decoration: none;">&times;</a>
                                     </span>
                                 {% endfor %}
                             {% endif %}
-                            {% if vegetarian_only %}
+                            {% if apply_dietary_preferences %}
                                 <span class="badge bg-warning text-dark">
-                                    <i class="fas fa-leaf me-1"></i>Vegetarian Only
+                                    <i class="fas fa-leaf me-1"></i>My Dietary Preferences
                                     <a href="{{ url_for('customer.restaurants', query=query, location=location, cuisines=cuisines) }}" 
                                        class="text-dark ms-2" style="text-decoration: none;">&times;</a>
                                 </span>
@@ -131,7 +130,7 @@
                 {% endif %}
             </h4>
             <p class="text-muted mb-0">
-                {% if query or location or cuisines or vegetarian_only %}
+                {% if query or location or cuisines or apply_dietary_preferences %}
                     Based on your search criteria
                 {% else %}
                     All available restaurants
@@ -194,7 +193,7 @@
                                 </div>
                                 <p class="card-text small text-muted flex-grow-1">{{ restaurant.description|truncate(100) }}</p>
                                 <div class="mt-auto">
-                                    <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" 
+                                    <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id, apply_dietary_preferences='on' if apply_dietary_preferences else '') }}" 
                                        class="btn btn-primary w-100">
                                         <i class="fas fa-utensils me-2"></i>View Menu
                                     </a>
@@ -249,7 +248,7 @@
                                     </div>
                                     <p class="card-text text-muted flex-grow-1">{{ restaurant.description|truncate(150) }}</p>
                                     <div class="mt-auto">
-                                        <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" 
+                                        <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id, apply_dietary_preferences='on' if apply_dietary_preferences else '') }}" 
                                            class="btn btn-primary">
                                             <i class="fas fa-utensils me-2"></i>View Menu
                                         </a>
@@ -270,7 +269,7 @@
                         </div>
                         <h3 class="mb-3">No restaurants found</h3>
                         <p class="text-muted mb-4">
-                            {% if query or location or cuisines or vegetarian_only %}
+                            {% if query or location or cuisines or apply_dietary_preferences %}
                                 Try adjusting your search criteria or filters
                             {% else %}
                                 No restaurants are available at the moment
@@ -461,8 +460,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Auto-submit form on dietary restriction change
-    document.querySelector('select[name="vegetarian_only"]').addEventListener('change', function() {
+    // Auto-submit form on dietary preferences checkbox change
+    document.querySelector('input[name="apply_dietary_preferences"]').addEventListener('change', function() {
         document.getElementById('searchForm').submit();
     });
     
@@ -473,5 +472,36 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
     });
 });
+
+// Custom styling for dietary preferences checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    const dietaryCheckbox = document.querySelector('input[name="apply_dietary_preferences"]');
+    if (dietaryCheckbox) {
+        dietaryCheckbox.style.width = '20px';
+        dietaryCheckbox.style.height = '20px';
+        dietaryCheckbox.style.marginRight = '12px';
+    }
+});
 </script>
+
+<style>
+/* Custom styling for dietary preferences checkbox */
+.form-check-input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 12px !important;
+    margin-top: 2px !important;
+}
+
+.form-check-input[type="checkbox"]:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-check-label {
+    font-size: 1rem !important;
+    line-height: 1.5;
+    margin-top: 2px;
+}
+</style>
 {% endblock %}

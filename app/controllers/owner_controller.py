@@ -296,6 +296,8 @@ def new_menu_item(id):
             price=form.price.data,
             category=form.category.data,
             is_vegetarian=not form.is_vegetarian.data,  # Invert: unchecked = vegetarian, checked = non-vegetarian
+            is_vegan=form.is_vegan.data,
+            is_guilt_free=form.is_guilt_free.data,
             is_special=form.is_special.data,
             is_deal_of_day=form.is_deal_of_day.data,
             image_path=image_filename
@@ -355,6 +357,8 @@ def edit_menu_item(id):
         menu_item.price = form.price.data
         menu_item.category = form.category.data
         menu_item.is_vegetarian = not form.is_vegetarian.data  # Invert: unchecked = vegetarian, checked = non-vegetarian
+        menu_item.is_vegan = form.is_vegan.data
+        menu_item.is_guilt_free = form.is_guilt_free.data
         menu_item.is_special = form.is_special.data
         
         # HANDLE DEAL OF THE DAY STATUS
@@ -382,6 +386,8 @@ def edit_menu_item(id):
         form.category.data = menu_item.category
         # Invert the vegetarian status for the form since "Non-Vegetarian" is checked when item is non-veg
         form.is_vegetarian.data = not menu_item.is_vegetarian
+        form.is_vegan.data = menu_item.is_vegan
+        form.is_guilt_free.data = menu_item.is_guilt_free
         form.is_special.data = menu_item.is_special
         form.is_deal_of_day.data = menu_item.is_deal_of_day
     

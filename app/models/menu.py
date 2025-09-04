@@ -18,6 +18,8 @@ class MenuItem(db.Model):
     price = db.Column(db.Float, nullable=False)
     category = db.Column(db.String(50), index=True)
     is_vegetarian = db.Column(db.Boolean, default=True)
+    is_vegan = db.Column(db.Boolean, default=False)
+    is_guilt_free = db.Column(db.Boolean, default=False)
     image_path = db.Column(db.String(200))
     is_special = db.Column(db.Boolean, default=False)
     is_deal_of_day = db.Column(db.Boolean, default=False)

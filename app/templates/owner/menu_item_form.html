@@ -78,6 +78,16 @@
                                 <small class="d-block text-muted">Check this box if the item is Non-Veg. Leave unchecked for vegetarian items.</small>
                             </div>
                             <div class="form-check mb-2">
+                                {{ form.is_vegan(class="form-check-input") }}
+                                {{ form.is_vegan.label(class="form-check-label") }}
+                                <small class="d-block text-muted">Check if this item is suitable for vegans (no animal products).</small>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ form.is_guilt_free(class="form-check-input") }}
+                                {{ form.is_guilt_free.label(class="form-check-label") }}
+                                <small class="d-block text-muted">Check if this item is guilt-free (healthy, low-calorie, etc.).</small>
+                            </div>
+                            <div class="form-check mb-2">
                                 {{ form.is_special(class="form-check-input") }}
                                 {{ form.is_special.label(class="form-check-label") }}
                             </div>

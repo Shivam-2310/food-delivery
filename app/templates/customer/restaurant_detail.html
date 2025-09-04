@@ -110,20 +110,21 @@
                             </select>
                         </div>
                         
-                        <!-- VEGETARIAN FILTER -->
-                        <div class="col-md-1">
+                        <!-- DIETARY PREFERENCES FILTER -->
+                        <div class="col-md-2">
                             <label class="form-label fw-bold">
                                 <i class="fas fa-leaf me-2"></i>Dietary
                             </label>
                             <div class="form-check mt-2">
-                                <input class="form-check-input" 
+                                <input class="form-check-input form-check-input-lg" 
                                        type="checkbox" 
-                                       id="vegetarianOnly" 
-                                       name="vegetarian_only" 
-                                       value="true"
-                                       {% if vegetarian_only %}checked{% endif %}>
-                                <label class="form-check-label fw-medium" for="vegetarianOnly">
-                                    Veg Only
+                                       id="applyDietaryPreferences" 
+                                       name="apply_dietary_preferences" 
+                                       value="on"
+                                       style="transform: scale(1.3); margin-right: 10px;"
+                                       {% if apply_dietary_preferences %}checked{% endif %}>
+                                <label class="form-check-label fw-medium fs-6" for="applyDietaryPreferences">
+                                    My Preferences
                                 </label>
                             </div>
                         </div>
@@ -255,11 +256,19 @@
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <h5 class="card-title mb-1">{{ item.name }}</h5>
-                                                {% if item.is_vegetarian %}
-                                                    <span class="badge bg-success"><i class="fas fa-leaf"></i> VEG</span>
-                                                {% else %}
-                                                    <span class="badge bg-danger"><i class="fas fa-drumstick-bite"></i> NON-VEG</span>
-                                                {% endif %}
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    {% if item.is_vegetarian %}
+                                                        <span class="badge bg-success"><i class="fas fa-leaf"></i> VEG</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger"><i class="fas fa-drumstick-bite"></i> NON-VEG</span>
+                                                    {% endif %}
+                                                    {% if item.is_vegan %}
+                                                        <span class="badge bg-primary"><i class="fas fa-seedling"></i> VEGAN</span>
+                                                    {% endif %}
+                                                    {% if item.is_guilt_free %}
+                                                        <span class="badge bg-info"><i class="fas fa-heart"></i> GUILT FREE</span>
+                                                    {% endif %}
+                                                </div>
                                             </div>
                                             <p class="card-text small text-muted mb-3">{{ item.description }}</p>
                                             <div class="d-flex justify-content-between align-items-center">
@@ -287,13 +296,13 @@
                                 </div>
                                 <h4 class="text-muted mb-3">No Menu Items Found</h4>
                                 <p class="text-muted mb-4">
-                                    {% if search_query or min_price or max_price or category_filter or vegetarian_only %}
+                                    {% if search_query or min_price or max_price or category_filter or apply_dietary_preferences %}
                                         No items match your current filters. Try adjusting your search criteria.
                                     {% else %}
                                         This restaurant doesn't have any menu items available yet.
                                     {% endif %}
                                 </p>
-                                {% if search_query or min_price or max_price or category_filter or vegetarian_only %}
+                                {% if search_query or min_price or max_price or category_filter or apply_dietary_preferences %}
                                     <a href="{{ url_for('customer.restaurant_detail', id=restaurant.id) }}" class="btn btn-primary">
                                         <i class="fas fa-times me-2"></i>Clear All Filters
                                     </a>
@@ -796,6 +805,25 @@ document.addEventListener('DOMContentLoaded', function() {
 .custom-range .form-control::placeholder {
     color: #9ca3af;
     font-weight: 400;
+}
+
+/* Custom styling for dietary preferences checkbox */
+.form-check-input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 12px !important;
+    margin-top: 2px !important;
+}
+
+.form-check-input[type="checkbox"]:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-check-label {
+    font-size: 1rem !important;
+    line-height: 1.5;
+    margin-top: 2px;
 }
 </style>
 {% endblock %}
