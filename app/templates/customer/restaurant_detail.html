@@ -106,8 +106,8 @@
                                             <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
                                                  class="card-img-top" alt="{{ item.name }}">
                                         {% else %}
-                                            <img src="https://placehold.co/600x400?text=No+Image" 
-                                                 class="card-img-top" alt="No Image">
+                                            <img src="{{ url_for('static', filename='images/menu_item_default.jpg') }}" 
+                                                 class="card-img-top" alt="Default image">
                                         {% endif %}
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start">
