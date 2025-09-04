@@ -4,7 +4,7 @@ TESTS FOR DATABASE MODELS
 
 import unittest
 from app import create_app, db
-from app.models import User, Customer, RestaurantOwner, Restaurant, MenuItem, Review, Order, OrderItem
+from app.models import User, Customer, RestaurantOwner, Restaurant, MenuItem, Order, OrderItem
 from app.models import ROLE_CUSTOMER, ROLE_OWNER
 import os
 import json
@@ -240,78 +240,6 @@ class TestModels(unittest.TestCase):
         # TEST INVALID STATUS
         self.assertFalse(saved_order.update_status('invalid_status'))
     
-    def test_review_system(self):
-        """
-        TEST REVIEW CREATION AND RELATIONSHIPS
-        """
-        # CREATE CUSTOMER
-        user1 = User(username='customer', email='customer@example.com', role=ROLE_CUSTOMER)
-        user1.set_password('password123')
-        db.session.add(user1)
-        db.session.flush()
-        
-        customer = Customer(user_id=user1.id, name='Test Customer')
-        db.session.add(customer)
-        
-        # CREATE OWNER AND RESTAURANT
-        user2 = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
-        user2.set_password('password123')
-        db.session.add(user2)
-        db.session.flush()
-        
-        owner = RestaurantOwner(user_id=user2.id, name='Test Owner')
-        db.session.add(owner)
-        db.session.flush()
-        
-        restaurant = Restaurant(
-            owner_id=owner.id,
-            name='Test Restaurant',
-            description='Test Description',
-            location='Test Location'
-        )
-        restaurant.set_cuisines(['Italian'])
-        db.session.add(restaurant)
-        db.session.flush()
-        
-        # CREATE MENU ITEM
-        menu_item = MenuItem(
-            restaurant_id=restaurant.id,
-            name='Test Item',
-            description='Test Description',
-            price=10.99,
-            category='main_course'
-        )
-        db.session.add(menu_item)
-        db.session.flush()
-        
-        # CREATE REVIEWS
-        restaurant_review = Review(
-            customer_id=customer.id,
-            restaurant_id=restaurant.id,
-            rating=4,
-            comment='Great restaurant!'
-        )
-        
-        menu_item_review = Review(
-            customer_id=customer.id,
-            restaurant_id=restaurant.id,
-            menu_item_id=menu_item.id,
-            rating=5,
-            comment='Delicious food!'
-        )
-        
-        db.session.add_all([restaurant_review, menu_item_review])
-        db.session.commit()
-        
-        # CHECK RESTAURANT RATING
-        saved_restaurant = Restaurant.query.get(restaurant.id)
-        self.assertEqual(saved_restaurant.average_rating, 4.5)  # (4+5)/2
-        self.assertEqual(saved_restaurant.total_reviews, 2)
-        
-        # CHECK MENU ITEM RATING
-        saved_menu_item = MenuItem.query.get(menu_item.id)
-        self.assertEqual(saved_menu_item.average_rating, 5)
-        self.assertEqual(saved_menu_item.total_reviews, 1)
 
 if __name__ == '__main__':
     unittest.main()

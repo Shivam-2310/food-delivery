@@ -24,7 +24,6 @@ class Customer(db.Model):
     
     # RELATIONSHIPS
     orders = db.relationship('Order', backref='customer', lazy='dynamic', cascade='all, delete-orphan')
-    reviews = db.relationship('Review', backref='customer', lazy='dynamic', cascade='all, delete-orphan')
     feedback = db.relationship('Feedback', backref='customer', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):

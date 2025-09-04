@@ -45,7 +45,6 @@ class Restaurant(db.Model):
     # RELATIONSHIPS
     menu_items = db.relationship('MenuItem', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
     orders = db.relationship('Order', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
-    reviews = db.relationship('Review', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
     feedbacks = db.relationship('Feedback', backref='restaurant', lazy='dynamic')
     
     def __repr__(self):

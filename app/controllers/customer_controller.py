@@ -8,10 +8,10 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from sqlalchemy import or_, and_
 from app import db
-from app.models import User, Customer, Restaurant, MenuItem, Order, OrderItem, Review, Feedback
+from app.models import User, Customer, Restaurant, MenuItem, Order, OrderItem, Feedback
 from app.models import STATUS_COMPLETED
 from app.models import STATUS_PENDING, STATUS_CONFIRMED, STATUS_PREPARING, STATUS_READY, STATUS_COMPLETED
-from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, ReviewForm, OrderFeedbackForm, SearchForm
+from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, OrderFeedbackForm, SearchForm
 from app.utils.decorators import customer_required
 from app.utils.constants import CUISINE_OPTIONS
 

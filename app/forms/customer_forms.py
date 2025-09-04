@@ -36,16 +36,6 @@ class PreferencesForm(FlaskForm):
     ])
     submit = SubmitField('SAVE PREFERENCES')
 
-class ReviewForm(FlaskForm):
-    """
-    FORM FOR SUBMITTING REVIEWS
-    """
-    rating = SelectField('Rating', 
-                         choices=[(1, '★'), (2, '★★'), (3, '★★★'), (4, '★★★★'), (5, '★★★★★')],
-                         validators=[DataRequired()],
-                         coerce=int)
-    comment = TextAreaField('Your Review', validators=[Optional(), Length(max=500)])
-    submit = SubmitField('SUBMIT REVIEW')
 
 class OrderFeedbackForm(FlaskForm):
     """
