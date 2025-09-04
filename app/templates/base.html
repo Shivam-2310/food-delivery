@@ -68,7 +68,13 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user-circle me-1"></i>
-                                {{ current_user.username }}
+                                {% if current_user.is_customer() and current_user.customer_profile %}
+                                    {{ current_user.customer_profile.name.split()[0] }}
+                                {% elif current_user.is_owner() and current_user.owner_profile %}
+                                    {{ current_user.owner_profile.name.split()[0] }}
+                                {% else %}
+                                    {{ current_user.username }}
+                                {% endif %}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 {% if current_user.is_customer() %}
@@ -84,6 +90,9 @@
                                         <i class="fas fa-chart-bar me-2"></i>Reports
                                     </a></li>
                                 {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                    <i class="fas fa-key me-2"></i>Change Password
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                     <i class="fas fa-sign-out-alt me-2"></i>Logout

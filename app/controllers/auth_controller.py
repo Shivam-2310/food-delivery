@@ -8,7 +8,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from urllib.parse import urlparse
 from app import db
 from app.models import User, Customer, RestaurantOwner
-from app.forms.auth_forms import LoginForm, ResetPasswordRequestForm, ResetPasswordForm
+from app.forms.auth_forms import LoginForm, ResetPasswordRequestForm, ResetPasswordForm, ChangePasswordForm
 from app.utils.auth_helpers import send_password_reset_email, generate_reset_token
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -105,3 +105,37 @@ def reset_password(token):
         return redirect(url_for('auth.login'))
     
     return render_template('auth/reset_password.html', form=form)
+
+@bp.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """
+    CHANGE PASSWORD ROUTE FOR AUTHENTICATED USERS
+    """
+    form = ChangePasswordForm()
+    
+    if form.validate_on_submit():
+        # Verify current password
+        if not current_user.check_password(form.current_password.data):
+            flash("CURRENT PASSWORD IS INCORRECT.", "danger")
+            return render_template('auth/change_password.html', form=form)
+        
+        # Check if new password is different from current password
+        if current_user.check_password(form.new_password.data):
+            flash("NEW PASSWORD MUST BE DIFFERENT FROM CURRENT PASSWORD.", "danger")
+            return render_template('auth/change_password.html', form=form)
+        
+        # Update password
+        current_user.set_password(form.new_password.data)
+        db.session.commit()
+        
+        logger.info(f"Password changed successfully for user: {current_user.username}")
+        flash("PASSWORD CHANGED SUCCESSFULLY!", "success")
+        
+        # Redirect based on user role
+        if current_user.is_customer():
+            return redirect(url_for('customer.dashboard'))
+        else:
+            return redirect(url_for('owner.dashboard'))
+    
+    return render_template('auth/change_password.html', form=form)
