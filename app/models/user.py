@@ -1,21 +1,19 @@
-"""
-USER MODEL FOR AUTHENTICATION AND AUTHORIZATION
-"""
+"""User model for authentication and authorization."""
+
+from datetime import datetime
 
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from app import db, login_manager
 from app.utils.auth_helpers import verify_reset_token as verify_token
 
-# USER ROLE CONSTANTS
+# User role constants.
 ROLE_CUSTOMER = 'customer'
 ROLE_OWNER = 'owner'
 
 class User(UserMixin, db.Model):
-    """
-    USER MODEL FOR AUTHENTICATION AND AUTHORIZATION
-    """
+    """User model for authentication and authorization."""
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -25,7 +23,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(10), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # RELATIONSHIPS
+    # Relationships.
     customer_profile = db.relationship('Customer', backref='user', uselist=False, cascade='all, delete-orphan')
     owner_profile = db.relationship('RestaurantOwner', backref='user', uselist=False, cascade='all, delete-orphan')
     
@@ -33,24 +31,24 @@ class User(UserMixin, db.Model):
         return f'<User {self.username}>'
     
     def set_password(self, password):
-        """SET USER PASSWORD"""
+        """Set user password."""
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
-        """CHECK IF PASSWORD IS CORRECT"""
+        """Check if password is correct."""
         return check_password_hash(self.password_hash, password)
     
     def is_customer(self):
-        """CHECK IF USER IS A CUSTOMER"""
+        """Check if user is a customer."""
         return self.role == ROLE_CUSTOMER
     
     def is_owner(self):
-        """CHECK IF USER IS A RESTAURANT OWNER"""
+        """Check if user is a restaurant owner."""
         return self.role == ROLE_OWNER
         
     @staticmethod
     def verify_reset_token(token):
-        """VERIFY PASSWORD RESET TOKEN"""
+        """Verify password reset token."""
         user_id = verify_token(token)
         if user_id:
             return User.query.get(user_id)
@@ -58,5 +56,5 @@ class User(UserMixin, db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    """LOAD USER FOR FLASK-LOGIN"""
+    """Load user for Flask-Login."""
     return User.query.get(int(user_id))
