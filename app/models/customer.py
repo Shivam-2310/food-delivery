@@ -1,15 +1,12 @@
-"""
-CUSTOMER MODEL FOR STORING CUSTOMER INFORMATION
-"""
+"""Customer model for storing customer information."""
 
 import json
 from datetime import datetime
+
 from app import db
 
 class Customer(db.Model):
-    """
-    CUSTOMER MODEL FOR STORING CUSTOMER INFORMATION AND PREFERENCES
-    """
+    """Customer model for storing customer information and preferences."""
     __tablename__ = 'customers'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -22,7 +19,7 @@ class Customer(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # RELATIONSHIPS
+    # Relationships.
     orders = db.relationship('Order', backref='customer', lazy='dynamic', cascade='all, delete-orphan')
     feedback = db.relationship('Feedback', backref='customer', lazy='dynamic', cascade='all, delete-orphan')
     
@@ -30,27 +27,27 @@ class Customer(db.Model):
         return f'<Customer {self.name}>'
     
     def get_preferences(self):
-        """GET CUSTOMER PREFERENCES AS DICT"""
+        """Get customer preferences as dict."""
         if not self.preferences:
             return {}
         return json.loads(self.preferences)
     
     def set_preferences(self, preferences_dict):
-        """SET CUSTOMER PREFERENCES FROM DICT"""
+        """Set customer preferences from dict."""
         self.preferences = json.dumps(preferences_dict)
     
     def get_dietary_restrictions(self):
-        """GET CUSTOMER DIETARY RESTRICTIONS AS LIST"""
+        """Get customer dietary restrictions as list."""
         if not self.dietary_restrictions:
             return []
         return json.loads(self.dietary_restrictions)
     
     def set_dietary_restrictions(self, restrictions_list):
-        """SET CUSTOMER DIETARY RESTRICTIONS FROM LIST"""
+        """Set customer dietary restrictions from list."""
         self.dietary_restrictions = json.dumps(restrictions_list)
     
     def add_to_favorites(self, restaurant_id):
-        """ADD RESTAURANT TO FAVORITES"""
+        """Add restaurant to favorites."""
         prefs = self.get_preferences()
         if 'favorite_restaurants' not in prefs:
             prefs['favorite_restaurants'] = []
@@ -62,7 +59,7 @@ class Customer(db.Model):
         return False
     
     def remove_from_favorites(self, restaurant_id):
-        """REMOVE RESTAURANT FROM FAVORITES"""
+        """Remove restaurant from favorites."""
         prefs = self.get_preferences()
         if 'favorite_restaurants' in prefs and restaurant_id in prefs['favorite_restaurants']:
             prefs['favorite_restaurants'].remove(restaurant_id)
@@ -71,6 +68,6 @@ class Customer(db.Model):
         return False
     
     def is_favorite(self, restaurant_id):
-        """CHECK IF RESTAURANT IS IN FAVORITES"""
+        """Check if restaurant is in favorites."""
         prefs = self.get_preferences()
         return 'favorite_restaurants' in prefs and restaurant_id in prefs['favorite_restaurants']
