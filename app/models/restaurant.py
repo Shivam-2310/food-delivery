@@ -1,15 +1,12 @@
-"""
-RESTAURANT AND RESTAURANT OWNER MODELS
-"""
+"""Restaurant and restaurant owner models."""
 
-from datetime import datetime
-from app import db
 import json
+from datetime import datetime
+
+from app import db
 
 class RestaurantOwner(db.Model):
-    """
-    RESTAURANT OWNER MODEL FOR STORING OWNER INFORMATION
-    """
+    """Restaurant owner model for storing owner information."""
     __tablename__ = 'restaurant_owners'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -19,16 +16,14 @@ class RestaurantOwner(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # RELATIONSHIPS
+    # Relationships.
     restaurants = db.relationship('Restaurant', backref='owner', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<RestaurantOwner {self.name}>'
 
 class Restaurant(db.Model):
-    """
-    RESTAURANT MODEL FOR STORING RESTAURANT INFORMATION
-    """
+    """Restaurant model for storing restaurant information."""
     __tablename__ = 'restaurants'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -42,7 +37,7 @@ class Restaurant(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # RELATIONSHIPS
+    # Relationships.
     menu_items = db.relationship('MenuItem', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
     orders = db.relationship('Order', backref='restaurant', lazy='dynamic', cascade='all, delete-orphan')
     feedbacks = db.relationship('Feedback', backref='restaurant', lazy='dynamic')
@@ -67,7 +62,7 @@ class Restaurant(db.Model):
         return db.session.query(Feedback).filter(Feedback.restaurant_id == self.id).count()
     
     def get_menu_by_category(self):
-        """GROUP MENU ITEMS BY CATEGORY"""
+        """Group menu items by category."""
         menu_dict = {}
         for item in self.menu_items:
             if item.category not in menu_dict:
@@ -75,9 +70,7 @@ class Restaurant(db.Model):
             menu_dict[item.category].append(item)
         return menu_dict
 
-    # ---------------------
-    # CUISINES HELPERS
-    # ---------------------
+    # Cuisines helpers.
     def get_cuisines(self):
         """Return cuisines as a list (empty list if none)."""
         try:
