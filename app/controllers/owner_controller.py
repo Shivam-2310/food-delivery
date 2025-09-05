@@ -1,38 +1,48 @@
-"""
-RESTAURANT OWNER CONTROLLER FOR RESTAURANT MANAGEMENT
-"""
+"""Restaurant owner controller for restaurant management."""
 
-import os
 import logging
+import os
 import uuid
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, abort
-from flask_login import login_required, current_user
+
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    request,
+    flash,
+    current_app,
+    abort,
+)
+from flask_login import current_user, login_required
+from sqlalchemy import desc, func
 from werkzeug.utils import secure_filename
+
 from app import db
-from app.models import Restaurant, MenuItem, Order, OrderItem, Feedback
+from app.forms.owner_forms import (
+    FeedbackResponseForm,
+    MenuItemForm,
+    OrderUpdateForm,
+    RestaurantForm,
+)
+from app.models import Feedback, MenuItem, Order, OrderItem, Restaurant
 from app.models.dish_rating import DishRating
-from app.forms.owner_forms import RestaurantForm, MenuItemForm, OrderUpdateForm, FeedbackResponseForm
-from app.utils.decorators import owner_required
-from sqlalchemy import func, desc
 from app.utils.constants import CUISINE_OPTIONS
+from app.utils.decorators import owner_required
 
 bp = Blueprint('owner', __name__, url_prefix='/owner')
 logger = logging.getLogger(__name__)
 
 def allowed_file(filename):
-    """
-    CHECK IF FILE HAS ALLOWED EXTENSION
-    """
+    """Check if file has an allowed extension."""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
 
 def save_image(file):
-    """
-    SAVE UPLOADED IMAGE AND RETURN FILENAME
-    """
+    """Save uploaded image and return filename."""
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        # ADD UNIQUE IDENTIFIER TO FILENAME
+        # Add unique identifier to filename.
         unique_filename = f"{uuid.uuid4().hex}_{filename}"
         file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
         return unique_filename
@@ -42,31 +52,29 @@ def save_image(file):
 @login_required
 @owner_required
 def dashboard():
-    """
-    RESTAURANT OWNER DASHBOARD ROUTE
-    """
-    # GET OWNER'S RESTAURANTS
+    """Restaurant owner dashboard route."""
+    # Get owner's restaurants.
     restaurants = Restaurant.query.filter_by(owner_id=current_user.owner_profile.id).all()
     
-    # GET RECENT ORDERS ACROSS ALL RESTAURANTS
+    # Get recent orders across all restaurants.
     recent_orders = Order.query.join(Restaurant).filter(
         Restaurant.owner_id == current_user.owner_profile.id
     ).order_by(Order.created_at.desc()).limit(10).all()
     
-    # GET PENDING FEEDBACK
+    # Get pending feedback.
     pending_feedback = Feedback.query\
         .join(Order, Feedback.order_id == Order.id)\
         .filter(Order.restaurant_id.in_([r.id for r in Restaurant.query.filter_by(owner_id=current_user.owner_profile.id)]),
                 Feedback.is_resolved == False)\
         .all()
     
-    # GET RECENT DISH RATINGS
+    # Get recent dish ratings.
     recent_dish_ratings = DishRating.query\
         .join(MenuItem, DishRating.menu_item_id == MenuItem.id)\
         .filter(MenuItem.restaurant_id.in_([r.id for r in restaurants]))\
         .order_by(DishRating.created_at.desc()).limit(10).all()
     
-    # GET DISH RATING STATISTICS
+    # Get dish rating statistics.
     dish_rating_stats = {}
     for restaurant in restaurants:
         total_dish_ratings = DishRating.query.join(MenuItem).filter(
@@ -93,16 +101,14 @@ def dashboard():
 @login_required
 @owner_required
 def restaurants():
-    """
-    RESTAURANT MANAGEMENT ROUTE
-    """
-    # GET SEARCH PARAMETERS
+    """Restaurant management route."""
+    # Get search parameters.
     search_query = request.args.get('search', '').strip()
     
-    # BUILD QUERY TO GET RESTAURANTS FOR OWNER
+    # Build query to get restaurants for owner.
     query = Restaurant.query.filter_by(owner_id=current_user.owner_profile.id)
     
-    # APPLY SEARCH FILTER
+    # Apply search filter.
     if search_query:
         query = query.filter(
             db.or_(
@@ -112,7 +118,7 @@ def restaurants():
             )
         )
     
-    # GET RESTAURANTS SORTED BY NAME
+    # Get restaurants sorted by name.
     restaurants = query.order_by(Restaurant.name.asc()).all()
     
     return render_template('owner/restaurants.html', 
@@ -123,20 +129,18 @@ def restaurants():
 @login_required
 @owner_required
 def new_restaurant():
-    """
-    CREATE NEW RESTAURANT ROUTE
-    """
+    """Create new restaurant route."""
     form = RestaurantForm()
-    # Populate cuisines choices from existing cuisines in DB
+    # Populate cuisines choices from existing cuisines in DB.
     form.cuisines.choices = [(c, c) for c in CUISINE_OPTIONS]
     
     if form.validate_on_submit():
-        # HANDLE IMAGE UPLOAD
+        # Handle image upload.
         image_filename = None
         if form.image.data:
             image_filename = save_image(form.image.data)
         
-        # CREATE RESTAURANT
+        # Create restaurant.
         restaurant = Restaurant(
             owner_id=current_user.owner_profile.id,
             name=form.name.data,
@@ -144,7 +148,7 @@ def new_restaurant():
             location=form.location.data,
             image_path=image_filename
         )
-        # Save cuisines list (also sets cuisine_type for compatibility)
+        # Save cuisines list (also sets cuisine_type for compatibility).
         restaurant.set_cuisines(form.cuisines.data)
         
         db.session.add(restaurant)
@@ -160,23 +164,21 @@ def new_restaurant():
 @login_required
 @owner_required
 def restaurant_detail(id):
-    """
-    RESTAURANT DETAIL ROUTE
-    """
+    """Restaurant detail route."""
     restaurant = Restaurant.query.get_or_404(id)
     
-    # ENSURE RESTAURANT BELONGS TO CURRENT USER
+    # Ensure restaurant belongs to current user.
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
     
-    # GET MENU ITEMS GROUPED BY CATEGORY
+    # Get menu items grouped by category.
     menu_by_category = restaurant.get_menu_by_category()
     
-    # GET ORDER FEEDBACK FOR THIS RESTAURANT (primary source for ratings/comments)
+    # Get order feedback for this restaurant (primary source for ratings/comments).
     from app.models.feedback import Feedback
     feedback_list = Feedback.query.filter_by(restaurant_id=restaurant.id).order_by(Feedback.created_at.desc()).all()
     
-    # GET DISH RATINGS FOR THIS RESTAURANT
+    # Get dish ratings for this restaurant.
     dish_ratings_list = DishRating.query.join(MenuItem).filter(
         MenuItem.restaurant_id == restaurant.id
     ).order_by(DishRating.created_at.desc()).all()
@@ -191,24 +193,22 @@ def restaurant_detail(id):
 @login_required
 @owner_required
 def edit_restaurant(id):
-    """
-    EDIT RESTAURANT ROUTE
-    """
+    """Edit restaurant route."""
     restaurant = Restaurant.query.get_or_404(id)
     
-    # ENSURE RESTAURANT BELONGS TO CURRENT USER
+    # Ensure restaurant belongs to current user.
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
     
     form = RestaurantForm()
-    # Populate cuisines choices
+    # Populate cuisines choices.
     form.cuisines.choices = [(c, c) for c in CUISINE_OPTIONS]
     
     if form.validate_on_submit():
-        # HANDLE IMAGE UPLOAD
+        # Handle image upload.
         if form.image.data:
             image_filename = save_image(form.image.data)
-            # DELETE OLD IMAGE IF EXISTS
+            # Delete old image if exists.
             if restaurant.image_path:
                 try:
                     os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], restaurant.image_path))
@@ -243,25 +243,23 @@ def edit_restaurant(id):
 @login_required
 @owner_required
 def delete_restaurant(id):
-    """
-    DELETE RESTAURANT ROUTE
-    """
+    """Delete restaurant route."""
     restaurant = Restaurant.query.get_or_404(id)
     
-    # ENSURE RESTAURANT BELONGS TO CURRENT USER
+    # Ensure restaurant belongs to current user.
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
     
     restaurant_name = restaurant.name
     
-    # DELETE RESTAURANT IMAGE IF EXISTS
+    # Delete restaurant image if exists.
     if restaurant.image_path:
         try:
             os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], restaurant.image_path))
         except OSError:
             pass
     
-    # DELETE MENU ITEM IMAGES
+    # Delete menu item images.
     for item in restaurant.menu_items:
         if item.image_path:
             try:
@@ -280,16 +278,14 @@ def delete_restaurant(id):
 @login_required
 @owner_required
 def restaurant_menu(id):
-    """
-    RESTAURANT MENU MANAGEMENT ROUTE
-    """
+    """Restaurant menu management route."""
     restaurant = Restaurant.query.get_or_404(id)
     
-    # ENSURE RESTAURANT BELONGS TO CURRENT USER
+    # Ensure restaurant belongs to current user.
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
     
-    # GROUP MENU ITEMS BY CATEGORY
+    # Group menu items by category.
     menu_by_category = restaurant.get_menu_by_category()
     
     return render_template('owner/menu.html', 
@@ -300,41 +296,39 @@ def restaurant_menu(id):
 @login_required
 @owner_required
 def new_menu_item(id):
-    """
-    ADD NEW MENU ITEM ROUTE
-    """
+    """Add new menu item route."""
     restaurant = Restaurant.query.get_or_404(id)
     
-    # ENSURE RESTAURANT BELONGS TO CURRENT USER
+    # Ensure restaurant belongs to current user.
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
     
     form = MenuItemForm()
     
     if form.validate_on_submit():
-        # VALIDATE DIETARY PREFERENCES - CAN'T BE VEGAN AND NON-VEGETARIAN
-        is_non_vegetarian = form.is_vegetarian.data  # True when "Non-Vegetarian" is checked
+        # Validate dietary preferences: cannot be vegan and non-vegetarian.
+        is_non_vegetarian = form.is_vegetarian.data  # True when "Non-Vegetarian" is checked.
         is_vegan = form.is_vegan.data
         
         if is_vegan and is_non_vegetarian:
             flash("ERROR: A dish cannot be both Vegan and Non-Vegetarian at the same time!", "error")
             return render_template('owner/menu_item_form.html', form=form, restaurant=restaurant)
         
-        # HANDLE IMAGE UPLOAD
+        # Handle image upload.
         image_filename = None
         if form.image.data:
             image_filename = save_image(form.image.data)
         
-        # CREATE MENU ITEM
-        # Note: form.is_vegetarian.data is True when "Non-Vegetarian" is checked
-        # So we need to invert it for the database field
+        # Create menu item.
+        # Note: form.is_vegetarian.data is True when "Non-Vegetarian" is checked.
+        # So we need to invert it for the database field.
         menu_item = MenuItem(
             restaurant_id=restaurant.id,
             name=form.name.data,
             description=form.description.data,
             price=form.price.data,
             category=form.category.data,
-            is_vegetarian=not form.is_vegetarian.data,  # Invert: unchecked = vegetarian, checked = non-vegetarian
+            is_vegetarian=not form.is_vegetarian.data,  # Invert: unchecked = vegetarian, checked = non-vegetarian.
             is_vegan=form.is_vegan.data,
             is_guilt_free=form.is_guilt_free.data,
             is_special=form.is_special.data,
@@ -342,7 +336,7 @@ def new_menu_item(id):
             image_path=image_filename
         )
         
-        # ENSURE ONLY ONE DEAL OF THE DAY
+        # Ensure only one deal of the day.
         if form.is_deal_of_day.data:
             existing_deals = MenuItem.query.filter_by(
                 restaurant_id=restaurant.id,
@@ -367,31 +361,29 @@ def new_menu_item(id):
 @login_required
 @owner_required
 def edit_menu_item(id):
-    """
-    EDIT MENU ITEM ROUTE
-    """
+    """Edit menu item route."""
     menu_item = MenuItem.query.get_or_404(id)
     restaurant = Restaurant.query.get_or_404(menu_item.restaurant_id)
     
-    # ENSURE RESTAURANT BELONGS TO CURRENT USER
+    # Ensure restaurant belongs to current user.
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
     
     form = MenuItemForm()
     
     if form.validate_on_submit():
-        # VALIDATE DIETARY PREFERENCES - CAN'T BE VEGAN AND NON-VEGETARIAN
-        is_non_vegetarian = form.is_vegetarian.data  # True when "Non-Vegetarian" is checked
+        # Validate dietary preferences: cannot be vegan and non-vegetarian.
+        is_non_vegetarian = form.is_vegetarian.data  # True when "Non-Vegetarian" is checked.
         is_vegan = form.is_vegan.data
         
         if is_vegan and is_non_vegetarian:
             flash("ERROR: A dish cannot be both Vegan and Non-Vegetarian at the same time!", "error")
             return render_template('owner/menu_item_form.html', form=form, restaurant=restaurant, menu_item=menu_item)
         
-        # HANDLE IMAGE UPLOAD
+        # Handle image upload.
         if form.image.data:
             image_filename = save_image(form.image.data)
-            # DELETE OLD IMAGE IF EXISTS
+            # Delete old image if exists.
             if menu_item.image_path:
                 try:
                     os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], menu_item.image_path))
@@ -403,14 +395,14 @@ def edit_menu_item(id):
         menu_item.description = form.description.data
         menu_item.price = form.price.data
         menu_item.category = form.category.data
-        menu_item.is_vegetarian = not form.is_vegetarian.data  # Invert: unchecked = vegetarian, checked = non-vegetarian
+        menu_item.is_vegetarian = not form.is_vegetarian.data  # Invert: unchecked = vegetarian, checked = non-vegetarian.
         menu_item.is_vegan = form.is_vegan.data
         menu_item.is_guilt_free = form.is_guilt_free.data
         menu_item.is_special = form.is_special.data
         
-        # HANDLE DEAL OF THE DAY STATUS
+        # Handle deal of the day status.
         if form.is_deal_of_day.data and not menu_item.is_deal_of_day:
-            # CLEAR OTHER DEAL OF THE DAY ITEMS
+            # Clear other deal of the day items.
             existing_deals = MenuItem.query.filter_by(
                 restaurant_id=restaurant.id,
                 is_deal_of_day=True
@@ -431,7 +423,7 @@ def edit_menu_item(id):
         form.description.data = menu_item.description
         form.price.data = menu_item.price
         form.category.data = menu_item.category
-        # Invert the vegetarian status for the form since "Non-Vegetarian" is checked when item is non-veg
+        # Invert the vegetarian status for the form since "Non-Vegetarian" is checked when item is non-veg.
         form.is_vegetarian.data = not menu_item.is_vegetarian
         form.is_vegan.data = menu_item.is_vegan
         form.is_guilt_free.data = menu_item.is_guilt_free
@@ -448,19 +440,17 @@ def edit_menu_item(id):
 @login_required
 @owner_required
 def delete_menu_item(id):
-    """
-    DELETE MENU ITEM ROUTE
-    """
+    """Delete menu item route."""
     menu_item = MenuItem.query.get_or_404(id)
     restaurant = Restaurant.query.get_or_404(menu_item.restaurant_id)
     
-    # ENSURE RESTAURANT BELONGS TO CURRENT USER
+    # Ensure restaurant belongs to current user.
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
     
     menu_item_name = menu_item.name
     
-    # DELETE MENU ITEM IMAGE IF EXISTS
+    # Delete menu item image if exists.
     if menu_item.image_path:
         try:
             os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], menu_item.image_path))
@@ -478,14 +468,12 @@ def delete_menu_item(id):
 @login_required
 @owner_required
 def orders():
-    """
-    ORDERS MANAGEMENT ROUTE
-    """
-    # GET FILTER PARAMETERS
+    """Orders management route."""
+    # Get filter parameters.
     status_filter = request.args.get('status', '')
     restaurant_id = request.args.get('restaurant_id', '')
     
-    # BUILD QUERY TO GET ORDERS FOR OWNER'S RESTAURANTS
+    # Build query to get orders for owner's restaurants.
     query = Order.query.join(Restaurant).filter(
         Restaurant.owner_id == current_user.owner_profile.id
     )
@@ -496,10 +484,10 @@ def orders():
     if restaurant_id:
         query = query.filter(Order.restaurant_id == restaurant_id)
     
-    # GET ORDERS SORTED BY DATE (NEWEST FIRST)
+    # Get orders sorted by date (newest first).
     orders = query.order_by(Order.created_at.desc()).all()
     
-    # GET OWNER'S RESTAURANTS FOR FILTER
+    # Get owner's restaurants for filter.
     restaurants = Restaurant.query.filter_by(owner_id=current_user.owner_profile.id).all()
     
     return render_template('owner/orders.html', 
@@ -512,12 +500,10 @@ def orders():
 @login_required
 @owner_required
 def order_detail(id):
-    """
-    ORDER DETAIL AND STATUS UPDATE ROUTE
-    """
+    """Order detail and status update route."""
     order = Order.query.get_or_404(id)
     
-    # ENSURE ORDER IS FROM OWNER'S RESTAURANT
+    # Ensure order is from owner's restaurant.
     restaurant = Restaurant.query.get(order.restaurant_id)
     if restaurant.owner_id != current_user.owner_profile.id:
         abort(403)
@@ -535,7 +521,7 @@ def order_detail(id):
     elif request.method == 'GET':
         form.status.data = order.status
     
-    # EXPLICITLY LOAD FEEDBACK FOR THIS ORDER
+    # Explicitly load feedback for this order.
     from app.models.feedback import Feedback
     feedback = Feedback.query.filter_by(order_id=order.id).first()
     
@@ -548,22 +534,20 @@ def order_detail(id):
 @login_required
 @owner_required
 def reports():
-    """
-    REPORTS DASHBOARD ROUTE
-    """
-    # GET FILTER PARAMETERS
+    """Reports dashboard route."""
+    # Get filter parameters.
     restaurant_id = request.args.get('restaurant_id', '')
     
-    # GET OWNER'S RESTAURANTS
+    # Get owner's restaurants.
     restaurants = Restaurant.query.filter_by(owner_id=current_user.owner_profile.id).all()
     
     if restaurant_id:
-        # ENSURE RESTAURANT BELONGS TO CURRENT USER
+        # Ensure restaurant belongs to current user.
         restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant or restaurant.owner_id != current_user.owner_profile.id:
             abort(403)
         
-        # TOP 5 MOST ORDERED MENU ITEMS
+        # Top 5 most ordered menu items.
         top_items = db.session.query(
             MenuItem.id, MenuItem.name, func.sum(OrderItem.quantity).label('total')
         ).join(OrderItem).join(Order)\
@@ -572,17 +556,17 @@ def reports():
         .order_by(desc('total'))\
         .limit(5).all()
         
-        # TOTAL ORDERS AND REVENUE FOR RESTAURANT
+        # Total orders and revenue for restaurant.
         orders_count = Order.query.filter_by(restaurant_id=restaurant_id).count()
         total_revenue = db.session.query(func.sum(Order.total_amount))\
             .filter(Order.restaurant_id == restaurant_id)\
             .scalar() or 0
         
-        # AVERAGE RATING - Use the restaurant's average_rating property
+        # Average rating: use the restaurant's average_rating property.
         restaurant = Restaurant.query.get(restaurant_id)
         avg_rating = restaurant.average_rating
         
-        # ORDERS BY DAY (LAST 30 DAYS)
+        # Orders by day (last 30 days).
         from datetime import datetime, timedelta
         end_date = datetime.now()
         start_date = end_date - timedelta(days=30)
@@ -596,7 +580,7 @@ def reports():
         ).group_by(func.date(Order.created_at))\
         .order_by(func.date(Order.created_at)).all()
         
-        # REVENUE TREND (LAST 30 DAYS)
+        # Revenue trend (last 30 days).
         daily_revenue = db.session.query(
             func.date(Order.created_at).label('date'),
             func.sum(Order.total_amount).label('revenue')
@@ -606,7 +590,7 @@ def reports():
         ).group_by(func.date(Order.created_at))\
         .order_by(func.date(Order.created_at)).all()
     else:
-        # INITIALIZE VARIABLES
+        # Initialize variables.
         top_items = []
         orders_count = 0
         total_revenue = 0
@@ -628,10 +612,8 @@ def reports():
 @login_required
 @owner_required
 def feedback():
-    """
-    FEEDBACK MANAGEMENT ROUTE
-    """
-    # GET FEEDBACK FOR OWNER'S RESTAURANTS
+    """Feedback management route."""
+    # Get feedback for owner's restaurants.
     feedback_list = Feedback.query\
         .join(Order, Feedback.order_id == Order.id)\
         .filter(Order.restaurant_id.in_([r.id for r in Restaurant.query.filter_by(owner_id=current_user.owner_profile.id)]))\
@@ -643,12 +625,10 @@ def feedback():
 @login_required
 @owner_required
 def respond_to_feedback(id):
-    """
-    RESPOND TO FEEDBACK ROUTE
-    """
+    """Respond to feedback route."""
     feedback_item = Feedback.query.get_or_404(id)
     
-    # VERIFY FEEDBACK IS FOR OWNER'S RESTAURANT
+    # Verify feedback is for owner's restaurant.
     is_for_owner = Restaurant.query.filter_by(
         id=feedback_item.restaurant_id, 
         owner_id=current_user.owner_profile.id
@@ -667,11 +647,11 @@ def respond_to_feedback(id):
         logger.info(f"Feedback #{feedback_item.id} responded to by {current_user.username}")
         flash("YOUR RESPONSE HAS BEEN SUBMITTED.", "success")
         
-        # Redirect back to order detail if coming from there
+        # Redirect back to order detail if coming from there.
         if request.args.get('from_order'):
             return redirect(url_for('owner.order_detail', id=feedback_item.order_id))
         
-        # Otherwise go to feedback list
+        # Otherwise go to feedback list.
         return redirect(url_for('owner.feedback'))
     
     return render_template('owner/respond_to_feedback.html',
