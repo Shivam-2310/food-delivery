@@ -1,11 +1,10 @@
-"""
-ORDER MODELS FOR STORING ORDERS AND ORDER ITEMS
-"""
+"""Order models for storing orders and order items."""
 
 from datetime import datetime
+
 from app import db
 
-# ORDER STATUS CONSTANTS
+# Order status constants.
 STATUS_PENDING = 'pending'
 STATUS_CONFIRMED = 'confirmed'
 STATUS_PREPARING = 'preparing'
@@ -14,9 +13,7 @@ STATUS_COMPLETED = 'completed'
 STATUS_CANCELLED = 'cancelled'
 
 class Order(db.Model):
-    """
-    ORDER MODEL FOR STORING CUSTOMER ORDERS
-    """
+    """Order model for storing customer orders."""
     __tablename__ = 'orders'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -27,7 +24,7 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # RELATIONSHIPS
+    # Relationships.
     items = db.relationship('OrderItem', backref='order', lazy='dynamic', cascade='all, delete-orphan')
     feedback = db.relationship('Feedback', backref='order', lazy='dynamic', cascade='all, delete-orphan')
     
@@ -36,12 +33,12 @@ class Order(db.Model):
     
     @property
     def item_count(self):
-        """GET TOTAL NUMBER OF ITEMS IN ORDER"""
+        """Get total number of items in order."""
         return sum(item.quantity for item in self.items)
     
     @property
     def status_display(self):
-        """GET HUMAN-READABLE STATUS"""
+        """Get human-readable status."""
         status_map = {
             STATUS_PENDING: 'Pending',
             STATUS_CONFIRMED: 'Confirmed',
@@ -53,7 +50,7 @@ class Order(db.Model):
         return status_map.get(self.status, self.status)
     
     def update_status(self, new_status):
-        """UPDATE ORDER STATUS"""
+        """Update order status."""
         if new_status in [STATUS_PENDING, STATUS_CONFIRMED, STATUS_PREPARING, 
                           STATUS_READY, STATUS_COMPLETED, STATUS_CANCELLED]:
             self.status = new_status
@@ -61,16 +58,14 @@ class Order(db.Model):
         return False
 
 class OrderItem(db.Model):
-    """
-    ORDER ITEM MODEL FOR STORING INDIVIDUAL ITEMS IN AN ORDER
-    """
+    """Order item model for storing individual items in an order."""
     __tablename__ = 'order_items'
     
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
-    price = db.Column(db.Float, nullable=False)  # PRICE AT TIME OF ORDER
+    price = db.Column(db.Float, nullable=False)  # Price at time of order.
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
@@ -78,5 +73,5 @@ class OrderItem(db.Model):
     
     @property
     def subtotal(self):
-        """CALCULATE SUBTOTAL FOR THIS ITEM"""
+        """Calculate subtotal for this item."""
         return self.price * self.quantity
