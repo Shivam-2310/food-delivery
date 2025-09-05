@@ -1,151 +1,90 @@
 # JustEat - Food Ordering Application
 
-A comprehensive food ordering platform built with Flask, allowing customers to browse restaurants, place orders, and restaurant owners to manage their menus and orders.
+A Flask-based food ordering app. This repo now has a single, simplified seeding flow.
 
-## Features
-
-### Customer Features
-- Browse and search for restaurants by location, cuisine, or name
-- View restaurant menus with filters for cuisine type, price, etc.
-- Place orders with customizable quantities
-- Track order status and view order history
-- Save preferences including favorite restaurants and dietary restrictions
-- Receive personalized recommendations
-- Submit ratings and reviews for restaurants and menu items
-- Provide feedback on the application experience
-
-### Restaurant Owner Features
-- Register restaurants on the platform
-- Manage restaurant profile and menu items
-- Process and update orders
-- Highlight special menu items and deals of the day
-- View order statistics and reports
+## What changed (simplified seeding)
+- `create_db.py` only creates database tables. It does NOT insert any data.
+- `flask seed-data` creates exactly 2 customers and 2 owners with Indian names and phone numbers. No restaurants or menu items are created by default.
 
 ## Tech Stack
 
 - **Backend**: Flask
-- **Frontend**: HTML, CSS, JavaScript with Bootstrap 5
+- **Frontend**: HTML, CSS, JavaScript (Bootstrap)
 - **Database**: SQLite
 - **ORM**: SQLAlchemy
-- **Authentication**: Flask-Login
-- **Form Validation**: Flask-WTF
+- **Auth**: Flask-Login
+- **Forms**: Flask-WTF
 
 ## Project Structure
 
 ```
 food-ordering-exit-test/
 ├── app/
-│   ├── controllers/      # Route handling logic
-│   ├── forms/            # Form definitions and validation 
-│   ├── models/           # Database models
-│   ├── services/         # Business logic
-│   ├── static/           # Static assets (CSS, JS, images)
-│   ├── templates/        # Jinja2 templates
-│   ├── utils/            # Utility functions
-│   └── __init__.py       # Application factory
-├── instance/             # Instance-specific data
-├── tests/                # Unit tests
-├── app.py               # Application entry point
-├── create_db.py         # Database initialization script
-└── requirements.txt     # Project dependencies
+│   ├── controllers/
+│   ├── forms/
+│   ├── models/
+│   ├── static/
+│   ├── templates/
+│   ├── utils/
+│   └── __init__.py
+├── instance/
+├── tests/
+├── app.py                # Flask app + CLI (init-db, seed-data)
+├── create_db.py          # Tables-only init script
+└── requirements.txt
 ```
 
-## Installation and Setup
+## Setup (Windows PowerShell)
 
-### Prerequisites
-- Python 3.7 or higher
-- pip (Python package installer)
-
-### Setup Instructions
-
-1. Clone the repository:
-```
-git clone https://github.com/yourusername/justeat.git
-cd justeat
-```
-
+1. Install Python 3.11+ and ensure it's on PATH.
 2. Create and activate a virtual environment:
 ```
-# On Windows
 python -m venv venv
-venv\Scripts\activate
-
-# On macOS/Linux
-python -m venv venv
-source venv/bin/activate
+./venv/Scripts/Activate.ps1
 ```
-
-3. Install the required packages:
+3. Install dependencies:
 ```
 pip install -r requirements.txt
 ```
-
-4. Initialize the database and create test data:
+4. Set environment variables for this session:
 ```
+$env:FLASK_APP="app.py"
+$env:FLASK_ENV="development"
+$env:SECRET_KEY="dev_key_only_for_development"
+```
+5. Create database tables (choose ONE):
+```
+# Option A (simple):
 python create_db.py
-```
 
-5. Run the application:
+# Option B (migrations, if you use them):
+flask db upgrade
+```
+6. Seed demo users (2 customers, 2 owners; no restaurants):
+```
+flask seed-data
+```
+7. Run the app:
 ```
 python app.py
 ```
-
-6. Access the application at: http://127.0.0.1:5000
+Open http://127.0.0.1:5000
 
 ## Demo Accounts
 
-The application comes with pre-seeded demo accounts for testing:
+- Customers:
+  - customer1 / password123
+  - customer2 / password123
+- Owners:
+  - owner1 / password123
+  - owner2 / password123
 
-### Customer Account
-- **Username**: customer
-- **Password**: password123
+## Notes
+- DB file is stored at `instance/justeat.db`. It’s created automatically.
+- Logs are written to `justeat.log`.
+- Uploads are stored in `app/static/uploads`.
 
-### Restaurant Owner Account
-- **Username**: owner
-- **Password**: password123
-
-## Usage Guide
-
-### For Customers
-1. Log in using the customer credentials
-2. Browse restaurants or search for specific cuisines
-3. View restaurant menus and add items to your cart
-4. Place an order and track its status
-5. Leave reviews for restaurants and menu items
-
-### For Restaurant Owners
-1. Log in using the owner credentials
-2. Manage your restaurants and menu items
-3. Process incoming orders by updating their status
-4. View reports on sales and popular menu items
-
-## Design Principles
-
-The application follows several key design principles:
-
-- **PEP 8 Compliance**: Following Python coding standards
-- **SOLID Principles**: Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion
-- **Layered Architecture**: Separation of concerns between data access, business logic, and presentation
-- **Responsive Design**: Mobile-friendly interface using Bootstrap
-
-## Testing
-
-Run the unit tests using the following command:
+## Tests
 ```
 python -m unittest discover tests
 ```
-
-## Assumptions
-
-- Address management, delivery management, and payment functionality are out of scope
-- All prices are in Indian Rupees (₹)
-- All locations are in Delhi, India
-- Order tracking is simplified to status updates
-
-## License
-
-[MIT License](LICENSE)
-
-## Author
-
-Your Name
