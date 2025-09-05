@@ -1,24 +1,28 @@
-"""
-AUTHENTICATION CONTROLLER FOR LOGIN AND PASSWORD RESET
-"""
+"""Authentication controller for login and password reset."""
 
 import logging
+from urllib.parse import urlparse
+
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
-from urllib.parse import urlparse
+
 from app import db
 from app.models import User, Customer, RestaurantOwner
-from app.forms.auth_forms import LoginForm, ResetPasswordRequestForm, ResetPasswordForm, ChangePasswordForm
+from app.forms.auth_forms import (
+    LoginForm,
+    ResetPasswordRequestForm,
+    ResetPasswordForm,
+    ChangePasswordForm,
+)
 from app.utils.auth_helpers import send_password_reset_email, generate_reset_token
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 logger = logging.getLogger(__name__)
 
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """
-    LOGIN ROUTE FOR CUSTOMER AND RESTAURANT OWNER
-    """
+    """Login route for customers and restaurant owners."""
     if current_user.is_authenticated:
         if current_user.is_customer():
             return redirect(url_for('customer.dashboard'))
@@ -50,22 +54,20 @@ def login():
     
     return render_template('auth/login.html', form=form)
 
+
 @bp.route('/logout')
 @login_required
 def logout():
-    """
-    LOGOUT ROUTE
-    """
+    """Logout route."""
     logger.info(f"User {current_user.username} logged out")
     logout_user()
     flash("YOU HAVE BEEN LOGGED OUT SUCCESSFULLY.", "info")
     return redirect(url_for('main.index'))
 
+
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
-    """
-    REQUEST PASSWORD RESET ROUTE
-    """
+    """Request password reset route."""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
@@ -82,11 +84,10 @@ def reset_password_request():
     
     return render_template('auth/reset_password_request.html', form=form)
 
+
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    """
-    RESET PASSWORD ROUTE
-    """
+    """Reset password route."""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
@@ -106,33 +107,32 @@ def reset_password(token):
     
     return render_template('auth/reset_password.html', form=form, token=token)
 
+
 @bp.route('/change_password', methods=['GET', 'POST'])
 @login_required
 def change_password():
-    """
-    CHANGE PASSWORD ROUTE FOR AUTHENTICATED USERS
-    """
+    """Change password route for authenticated users."""
     form = ChangePasswordForm()
     
     if form.validate_on_submit():
-        # Verify current password
+        # Verify current password.
         if not current_user.check_password(form.current_password.data):
             flash("CURRENT PASSWORD IS INCORRECT.", "danger")
             return render_template('auth/change_password.html', form=form)
         
-        # Check if new password is different from current password
+        # Ensure the new password differs from the current password.
         if current_user.check_password(form.new_password.data):
             flash("NEW PASSWORD MUST BE DIFFERENT FROM CURRENT PASSWORD.", "danger")
             return render_template('auth/change_password.html', form=form)
         
-        # Update password
+        # Update password.
         current_user.set_password(form.new_password.data)
         db.session.commit()
         
         logger.info(f"Password changed successfully for user: {current_user.username}")
         flash("PASSWORD RESET SUCCESSFULLY!", "success")
         
-        # Redirect based on user role
+        # Redirect based on user role.
         if current_user.is_customer():
             return redirect(url_for('customer.dashboard'))
         else:
