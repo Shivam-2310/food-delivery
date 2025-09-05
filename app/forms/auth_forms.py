@@ -1,16 +1,13 @@
-"""
-AUTHENTICATION FORMS
-"""
+"""Authentication forms."""
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, RadioField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from wtforms import BooleanField, PasswordField, RadioField, StringField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+
 from app.models import User
 
 class LoginForm(FlaskForm):
-    """
-    LOGIN FORM FOR CUSTOMER AND RESTAURANT OWNER
-    """
+    """Login form for customer and restaurant owner."""
     username = StringField('Username', validators=[DataRequired(), Length(min=4, max=64)])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     role = RadioField('Login As', choices=[('customer', 'Customer'), ('owner', 'Restaurant Owner')], validators=[DataRequired()])
@@ -18,43 +15,37 @@ class LoginForm(FlaskForm):
     submit = SubmitField('LOGIN')
 
 class ResetPasswordRequestForm(FlaskForm):
-    """
-    FORM FOR REQUESTING PASSWORD RESET
-    """
+    """Form for requesting password reset."""
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('REQUEST PASSWORD RESET')
     
     def validate_email(self, field):
-        """VALIDATE EMAIL EXISTS"""
+        """Validate that the email exists."""
         user = User.query.filter_by(email=field.data).first()
         if not user:
             raise ValidationError('NO ACCOUNT FOUND WITH THAT EMAIL ADDRESS.')
 
 class ResetPasswordForm(FlaskForm):
-    """
-    FORM FOR RESETTING PASSWORD
-    """
+    """Form for resetting password."""
     password = PasswordField('New Password', validators=[
-        DataRequired(), 
+        DataRequired(),
         Length(min=8, message='PASSWORD MUST BE AT LEAST 8 CHARACTERS LONG.')
     ])
     confirm_password = PasswordField('Confirm Password', validators=[
-        DataRequired(), 
+        DataRequired(),
         EqualTo('password', message='PASSWORDS MUST MATCH.')
     ])
     submit = SubmitField('RESET PASSWORD')
 
 class ChangePasswordForm(FlaskForm):
-    """
-    FORM FOR AUTHENTICATED USERS TO CHANGE PASSWORD
-    """
+    """Form for authenticated users to change password."""
     current_password = PasswordField('Current Password', validators=[DataRequired()])
     new_password = PasswordField('New Password', validators=[
-        DataRequired(), 
+        DataRequired(),
         Length(min=8, message='PASSWORD MUST BE AT LEAST 8 CHARACTERS LONG.')
     ])
     confirm_password = PasswordField('Confirm New Password', validators=[
-        DataRequired(), 
+        DataRequired(),
         EqualTo('new_password', message='PASSWORDS MUST MATCH.')
     ])
     submit = SubmitField('RESET PASSWORD')
