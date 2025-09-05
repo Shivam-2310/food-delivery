@@ -293,10 +293,14 @@ def restaurant_detail(id):
         status=STATUS_COMPLETED  # Only completed orders count
     ).first() is not None
     
+    # GET RECOMMENDED DISHES FOR THIS RESTAURANT
+    recommended_dishes = get_recommended_dishes(current_user.customer_profile, restaurant.id)
+    
     return render_template('customer/restaurant_detail.html', 
                            restaurant=restaurant,
                            menu_by_category=menu_by_category,
                            is_favorite=is_favorite,
+                           recommended_dishes=recommended_dishes,
                            reviews=feedback_list,
                            has_ordered=has_ordered,
                            search_query=search_query,
@@ -685,3 +689,54 @@ def get_recommendations(customer):
     
     # LIMIT TO 5 RECOMMENDATIONS
     return recommendations[:5]
+
+def get_recommended_dishes(customer, restaurant_id):
+    """
+    GET RECOMMENDED DISHES BASED ON CUSTOMER PREFERENCES AND ORDER HISTORY
+    Returns top 3 dishes that customer hasn't ordered before, sorted by rating
+    """
+    # GET CUSTOMER PREFERENCES
+    preferences = customer.get_preferences()
+    favorite_cuisines = preferences.get('favorite_cuisines', []) if preferences else []
+    dietary_restrictions = customer.get_dietary_restrictions()
+    
+    # GET PREVIOUSLY ORDERED MENU ITEMS BY THIS CUSTOMER
+    ordered_menu_item_ids = db.session.query(OrderItem.menu_item_id).join(Order).filter(
+        Order.customer_id == customer.id,
+        Order.status == STATUS_COMPLETED
+    ).distinct().all()
+    ordered_menu_item_ids = [item[0] for item in ordered_menu_item_ids]
+    
+    # BUILD QUERY FOR RECOMMENDED DISHES
+    from sqlalchemy import func, or_
+    
+    # Start with dishes from this restaurant that customer hasn't ordered
+    recommended_query = MenuItem.query.filter_by(restaurant_id=restaurant_id)
+    
+    # Exclude previously ordered items
+    if ordered_menu_item_ids:
+        recommended_query = recommended_query.filter(~MenuItem.id.in_(ordered_menu_item_ids))
+    
+    # Apply dietary restrictions if user has them
+    if dietary_restrictions:
+        dietary_conditions = []
+        
+        if 'vegetarian' in dietary_restrictions:
+            dietary_conditions.append(MenuItem.is_vegetarian == True)
+        if 'vegan' in dietary_restrictions:
+            dietary_conditions.append(MenuItem.is_vegan == True)
+        if 'guilt_free' in dietary_restrictions:
+            dietary_conditions.append(MenuItem.is_guilt_free == True)
+        
+        if dietary_conditions:
+            recommended_query = recommended_query.filter(or_(*dietary_conditions))
+    
+    # Get dishes with ratings, ordered by average rating (highest first)
+    # Only include dishes that have at least one rating
+    recommended_dishes = recommended_query.join(DishRating).group_by(
+        MenuItem.id
+    ).order_by(
+        func.avg(DishRating.rating).desc()
+    ).limit(3).all()
+    
+    return recommended_dishes
