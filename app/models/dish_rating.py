@@ -1,14 +1,13 @@
-"""
-DISH RATING MODEL FOR STORING INDIVIDUAL FOOD ITEM RATINGS
-"""
+"""Dish rating model for storing individual food item ratings."""
 
 from datetime import datetime
+
 from app import db
 
 class DishRating(db.Model):
-    """
-    DISH RATING MODEL FOR STORING INDIVIDUAL FOOD ITEM RATINGS
-    ONLY ALLOWED AFTER ORDER IS COMPLETED
+    """Dish rating model for individual food item ratings.
+
+    Only allowed after order is completed.
     """
     __tablename__ = 'dish_ratings'
     
@@ -17,14 +16,14 @@ class DishRating(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
     menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)  # 1-5 STAR RATING
+    rating = db.Column(db.Integer, nullable=False)  # 1-5 star rating.
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # UNIQUE CONSTRAINT: One rating per customer per menu item per order
+    # Unique constraint: one rating per customer per menu item per order.
     __table_args__ = (db.UniqueConstraint('order_id', 'menu_item_id', name='unique_order_dish_rating'),)
     
-    # RELATIONSHIPS
+    # Relationships.
     order = db.relationship('Order', backref='dish_ratings')
     customer = db.relationship('Customer', backref='dish_ratings')
     restaurant = db.relationship('Restaurant', backref='dish_ratings')
