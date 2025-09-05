@@ -1,26 +1,35 @@
-"""
-DATABASE INITIALIZATION SCRIPT
-"""
-from app import create_app, db
-from app.models import User, Customer, RestaurantOwner, Restaurant, MenuItem, Order, OrderItem, Feedback
-from app.models import ROLE_CUSTOMER, ROLE_OWNER, STATUS_COMPLETED
+"""Database initialization script."""
+
 from datetime import datetime, timedelta
 
-# CREATE APP CONTEXT
+from app import create_app, db
+from app.models import (
+    Customer,
+    Feedback,
+    MenuItem,
+    Order,
+    OrderItem,
+    Restaurant,
+    RestaurantOwner,
+    User,
+)
+from app.models import ROLE_CUSTOMER, ROLE_OWNER, STATUS_COMPLETED
+
+# Create app context.
 app = create_app()
 with app.app_context():
-    # CREATE ALL TABLES
+    # Create all tables.
     db.create_all()
     print("DATABASE TABLES CREATED SUCCESSFULLY!")
     
-    # CREATE DEMO USERS
+    # Create demo users.
     if User.query.filter_by(username='customer').first() is None:
         customer_user = User(username='customer', email='customer@example.com', role=ROLE_CUSTOMER)
         customer_user.set_password('password123')
         db.session.add(customer_user)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE CUSTOMER PROFILE
+        # Create customer profile.
         customer = Customer(
             user_id=customer_user.id,
             name='Rahul Sharma',
@@ -29,7 +38,7 @@ with app.app_context():
         )
         db.session.add(customer)
         
-    # ADD A SECOND CUSTOMER (IDEMPOTENT)
+    # Add a second customer (idempotent).
     if User.query.filter_by(username='customer2').first() is None:
         customer_user2 = User(username='customer2', email='customer2@example.com', role=ROLE_CUSTOMER)
         customer_user2.set_password('password123')
@@ -47,18 +56,18 @@ with app.app_context():
         owner_user = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
         owner_user.set_password('password123')
         db.session.add(owner_user)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE OWNER PROFILE
+        # Create owner profile.
         owner = RestaurantOwner(
             user_id=owner_user.id,
             name='Priya Patel',
             phone='8765432109'
         )
         db.session.add(owner)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE SAMPLE RESTAURANT
+        # Create sample restaurant.
         restaurant = Restaurant(
             owner_id=owner.id,
             name='Spice Junction',
@@ -67,9 +76,9 @@ with app.app_context():
         )
         restaurant.set_cuisines(['North Indian'])
         db.session.add(restaurant)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE SAMPLE MENU ITEMS
+        # Create sample menu items.
         menu_items = [
             MenuItem(
                 restaurant_id=restaurant.id,
@@ -110,7 +119,7 @@ with app.app_context():
         for item in menu_items:
             db.session.add(item)
     
-        # CREATE A COMPLETED ORDER FOR TESTING FEEDBACK
+        # Create a completed order for testing feedback.
         completed_order = Order(
             customer_id=Customer.query.first().id,
             restaurant_id=Restaurant.query.first().id,
@@ -121,7 +130,7 @@ with app.app_context():
         db.session.add(completed_order)
         db.session.flush()
         
-        # ADD ORDER ITEMS
+        # Add order items.
         biryani = MenuItem.query.filter_by(name='Chicken Biryani').first()
         naan = MenuItem.query.filter_by(name='Garlic Naan').first()
         
@@ -143,7 +152,7 @@ with app.app_context():
             for item in order_items:
                 db.session.add(item)
             
-            # ADD FEEDBACK FOR THE COMPLETED ORDER
+            # Add feedback for the completed order.
             feedback = Feedback(
                 order_id=completed_order.id,
                 customer_id=Customer.query.first().id,
@@ -155,7 +164,7 @@ with app.app_context():
             )
             db.session.add(feedback)
 
-    # ADD A SECOND OWNER (IDEMPOTENT)
+    # Add a second owner (idempotent).
     if User.query.filter_by(username='owner2').first() is None:
         owner_user2 = User(username='owner2', email='owner2@example.com', role=ROLE_OWNER)
         owner_user2.set_password('password123')
@@ -168,6 +177,6 @@ with app.app_context():
         )
         db.session.add(owner2)
     
-    # COMMIT ALL CHANGES
+    # Commit all changes.
     db.session.commit()
     print("DEMO DATA SEEDED SUCCESSFULLY!")
