@@ -1,17 +1,13 @@
-"""
-JUSTEAT MAIN APPLICATION FILE
-"""
+"""JustEat main application file."""
 from app import create_app, db
-from app.models import User, Customer, RestaurantOwner, Restaurant, MenuItem, Order
+from app.models import Customer, MenuItem, Order, Restaurant, RestaurantOwner, User
 from app.models import ROLE_CUSTOMER, ROLE_OWNER
 
 app = create_app()
 
 @app.shell_context_processor
 def make_shell_context():
-    """
-    MAKE OBJECTS AVAILABLE IN FLASK SHELL
-    """
+    """Make objects available in Flask shell."""
     return {
         'db': db,
         'User': User,
@@ -26,25 +22,21 @@ def make_shell_context():
 
 @app.cli.command("init-db")
 def init_db():
-    """
-    INITIALIZE DATABASE TABLES
-    """
+    """Initialize database tables."""
     db.create_all()
     print("DATABASE TABLES CREATED")
 
 @app.cli.command("seed-data")
 def seed_data():
-    """
-    SEED THE DATABASE WITH INITIAL DATA
-    """
-    # CREATE DEMO USERS
+    """Seed the database with initial data."""
+    # Create demo users.
     if User.query.filter_by(username='customer').first() is None:
         customer_user = User(username='customer', email='customer@example.com', role=ROLE_CUSTOMER)
         customer_user.set_password('password123')
         db.session.add(customer_user)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE CUSTOMER PROFILE
+        # Create customer profile.
         customer = Customer(
             user_id=customer_user.id,
             name='Demo Customer',
@@ -57,18 +49,18 @@ def seed_data():
         owner_user = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
         owner_user.set_password('password123')
         db.session.add(owner_user)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE OWNER PROFILE
+        # Create owner profile.
         owner = RestaurantOwner(
             user_id=owner_user.id,
             name='Demo Restaurant Owner',
             phone='555-987-6543'
         )
         db.session.add(owner)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE SAMPLE RESTAURANT
+        # Create sample restaurant.
         restaurant = Restaurant(
             owner_id=owner.id,
             name='Tasty Treats',
@@ -77,9 +69,9 @@ def seed_data():
         )
         restaurant.set_cuisines(['Italian'])
         db.session.add(restaurant)
-        db.session.flush()  # GET ID
+        db.session.flush()  # Get ID.
         
-        # CREATE SAMPLE MENU ITEMS
+        # Create sample menu items.
         menu_items = [
             MenuItem(
                 restaurant_id=restaurant.id,
@@ -120,7 +112,7 @@ def seed_data():
         for item in menu_items:
             db.session.add(item)
 
-    # ADDITIONAL CUSTOMER (IDEMPOTENT)
+    # Additional customer (idempotent).
     if User.query.filter_by(username='customer2').first() is None:
         customer_user2 = User(username='customer2', email='customer2@example.com', role=ROLE_CUSTOMER)
         customer_user2.set_password('password123')
@@ -134,7 +126,7 @@ def seed_data():
         )
         db.session.add(customer2)
 
-    # ADDITIONAL OWNER (IDEMPOTENT)
+    # Additional owner (idempotent).
     if User.query.filter_by(username='owner2').first() is None:
         owner_user2 = User(username='owner2', email='owner2@example.com', role=ROLE_OWNER)
         owner_user2.set_password('password123')
