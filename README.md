@@ -1,35 +1,39 @@
 # JustEat - Food Ordering Application
 
-JustEat is a Flask-based food ordering application. The repository is streamlined with a single, clear seeding flow for development.
+A Flask-based food ordering application with a streamlined setup process.
 
-## Highlights
-- `create_db.py` creates database tables only (no data insertion).
-- `flask seed-data` inserts exactly two customers and two owners with Indian names and phone numbers. No restaurants or menu items are created by default.
+## Features
+- Customer and restaurant owner dashboards
+- User authentication and role-based access
+- Restaurant and menu management
+- Order processing and tracking
+- Feedback and rating system
 
 ## Tech Stack
-- Backend: Flask
-- Frontend: HTML, CSS, JavaScript (Bootstrap)
-- Database: SQLite
-- ORM: SQLAlchemy
-- Authentication: Flask-Login
-- Forms: Flask-WTF
+- **Backend**: Flask
+- **Frontend**: HTML, CSS, JavaScript (Bootstrap)
+- **Database**: SQLite
+- **ORM**: SQLAlchemy
+- **Authentication**: Flask-Login
+- **Forms**: Flask-WTF
 
 ## Project Structure
 ```
 food-ordering-exit-test/
 ├── app/
-│   ├── controllers/
-│   ├── forms/
-│   ├── models/
-│   ├── static/
-│   ├── templates/
-│   ├── utils/
-│   └── __init__.py
-├── instance/                # Created automatically; holds justeat.db
-├── tests/
-├── app.py                   # Flask app + CLI (init-db, seed-data)
-├── create_db.py             # Tables-only initialization script
-└── requirements.txt
+│   ├── controllers/         # Route handlers
+│   ├── forms/              # Form definitions
+│   ├── models/             # Database models
+│   ├── static/             # CSS, JS, images
+│   ├── templates/          # HTML templates
+│   ├── utils/              # Utility functions
+│   └── __init__.py         # Application factory
+├── instance/               # Database file (auto-created)
+├── tests/                  # Unit tests
+├── app.py                  # Application entry point
+├── create_db.py            # Database initialization
+├── seed_users.py           # User seeding script
+└── requirements.txt        # Dependencies
 ```
 
 ## Prerequisites
@@ -38,100 +42,122 @@ food-ordering-exit-test/
 
 ## Setup Instructions
 
-### 1) Clone the Repository
-```
+### 1) Clone/Copy the Project
+```bash
+# If using Git
 git clone <your-repo-url>
 cd food-ordering-exit-test
+
+# Or copy the project folder to your desired location
 ```
 
-### 2) Create and Activate a Virtual Environment
-- Windows (PowerShell):
-```
+### 2) Create Virtual Environment
+```bash
+# Create virtual environment
 python -m venv venv
-./venv/Scripts/Activate.ps1
-```
-- macOS/Linux:
-```
-python3 -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
 source venv/bin/activate
 ```
 
 ### 3) Install Dependencies
-```
+```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4) Environment Configuration
-Set the following environment variables in your shell session.
-
-- Windows (PowerShell):
-```
-$env:FLASK_APP="app.py"
-$env:FLASK_ENV="development"
-$env:SECRET_KEY="dev_key_only_for_development"
-```
-- macOS/Linux (bash/zsh):
-```
-export FLASK_APP=app.py
-export FLASK_ENV=development
-export SECRET_KEY=dev_key_only_for_development
-```
-
-### 5) Initialize the Database (choose ONE path)
-- Simple (tables only):
-```
+### 4) Initialize Database
+```bash
 python create_db.py
 ```
-- Using migrations (if you have a working Alembic setup):
-```
-flask db upgrade
+
+### 5) Seed Demo Users
+```bash
+python seed_users.py
 ```
 
-### 6) Seed Development Data
-Inserts two customers and two owners (no restaurants or menu items):
-```
-flask seed-data
-```
-
-### 7) Run the Application
-```
+### 6) Run the Application
+```bash
 python app.py
 ```
-Navigate to: http://127.0.0.1:5000
 
-## Demo Accounts
-- Customers
-  - customer1 / password123
-  - customer2 / password123
-- Owners
-  - owner1 / password123
-  - owner2 / password123
+### 7) Access the Application
+Open your browser and navigate to: `http://127.0.0.1:5000`
 
-## Configuration Notes
-- SQLite database is created at `instance/justeat.db`.
-- Logs are written to `justeat.log` in the project root.
-- Uploads directory is `app/static/uploads` (created automatically).
+## Demo Login Credentials
+
+### Customers
+- **Username**: `customer1` | **Password**: `password123` (Rahul Sharma)
+- **Username**: `customer2` | **Password**: `password123` (Anita Verma)
+
+### Restaurant Owners
+- **Username**: `owner1` | **Password**: `password123` (Priya Patel)
+- **Username**: `owner2` | **Password**: `password123` (Arjun Mehta)
+
+## Quick Start Commands
+```bash
+# Complete setup in one go
+python -m venv venv
+venv\Scripts\activate                    # Windows
+# source venv/bin/activate              # macOS/Linux
+pip install -r requirements.txt
+python create_db.py
+python seed_users.py
+python app.py
+```
 
 ## Testing
-```
+Run the test suite:
+```bash
 python -m unittest discover tests
 ```
 
+## File Locations
+- **Database**: `instance/justeat.db` (created automatically)
+- **Logs**: `justeat.log` (in project root)
+- **Uploads**: `app/static/uploads/` (created automatically)
+
 ## Troubleshooting
-- Windows script activation error when running `Activate.ps1`:
-  - Open PowerShell as current user and run:
-  ```
-  Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-  ```
-  Then re-run `./venv/Scripts/Activate.ps1`.
-- Port already in use:
-  - Stop the other process or set a different port:
-  ```
-  set FLASK_RUN_PORT=5050   # Windows
-  export FLASK_RUN_PORT=5050 # macOS/Linux
-  python app.py
-  ```
+
+### Windows PowerShell Script Execution Error
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+### Port Already in Use
+```bash
+# Stop the current process or use a different port
+python app.py --port 5050
+```
+
+### Database Issues
+```bash
+# Delete database and recreate
+rm instance/justeat.db          # macOS/Linux
+del instance\justeat.db         # Windows
+python create_db.py
+python seed_users.py
+```
+
+### Virtual Environment Issues
+```bash
+# Deactivate and recreate
+deactivate
+rm -rf venv                     # macOS/Linux
+rmdir /s venv                   # Windows
+python -m venv venv
+# Reactivate and reinstall
+```
+
+## Development Notes
+- The application uses SQLite for simplicity
+- No environment variables required for basic setup
+- All demo data is created by `seed_users.py`
+- Database tables are created by `create_db.py`
+- Application entry point is `app.py`
 
 ## License
 MIT
