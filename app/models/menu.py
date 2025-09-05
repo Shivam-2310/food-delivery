@@ -1,14 +1,10 @@
-"""
-MENU ITEM MODEL
-"""
+"""Menu item model."""
 
 from datetime import datetime
 from app import db
 
 class MenuItem(db.Model):
-    """
-    MENU ITEM MODEL FOR STORING FOOD ITEMS
-    """
+    """Menu item model for storing food items."""
     __tablename__ = 'menu_items'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -28,7 +24,7 @@ class MenuItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # RELATIONSHIPS
+    # Relationships.
     order_items = db.relationship('OrderItem', backref='menu_item', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):
@@ -36,35 +32,34 @@ class MenuItem(db.Model):
     
     @property
     def is_mostly_ordered(self):
-        """CHECK IF ITEM IS MOSTLY ORDERED (>10 TIMES TODAY)"""
-        # Ensure we're checking today's count
+        """Check if item is mostly ordered (>10 times today)."""
+        # Ensure we're checking today's count.
         self._ensure_daily_reset()
         return self.times_ordered_today > 10
     
     def _ensure_daily_reset(self):
-        """ENSURE DAILY RESET IF IT'S A NEW DAY (AUTOMATIC AT MIDNIGHT)"""
+        """Ensure daily reset if it's a new day (automatic at midnight)."""
         today = datetime.utcnow().date()
         if self.last_order_date != today:
-            # It's a new day - automatically reset the counter
+            # It is a new day – automatically reset the counter.
             self.times_ordered_today = 0
             self.last_order_date = today
-            # Don't commit here - let the calling function handle it
     
     def increment_daily_order_count(self, quantity=1):
-        """INCREMENT DAILY ORDER COUNT WITH AUTOMATIC DAILY RESET AT MIDNIGHT"""
+        """Increment daily order count with automatic daily reset at midnight."""
         today = datetime.utcnow().date()
         
-        # Automatic reset if it's a new day (after 12 AM)
+        # Automatic reset if it's a new day (after 12 AM).
         if self.last_order_date != today:
             self.times_ordered_today = 0
             self.last_order_date = today
         
-        # Increment the count
+        # Increment the count.
         self.times_ordered_today += quantity
     
     
     def reset_daily_order_count(self):
-        """RESET THE DAILY ORDER COUNT"""
+        """Reset the daily order count."""
         self.times_ordered_today = 0
         self.last_order_date = datetime.utcnow().date()
     
