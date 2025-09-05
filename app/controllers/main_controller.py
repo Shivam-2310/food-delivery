@@ -1,6 +1,4 @@
-"""
-MAIN CONTROLLER FOR HOMEPAGE AND COMMON PAGES
-"""
+"""Main controller for homepage and common pages."""
 
 import logging
 from flask import Blueprint, render_template, redirect, url_for
@@ -10,21 +8,19 @@ logger = logging.getLogger(__name__)
 
 @bp.route('/')
 def index():
-    """
-    HOMEPAGE ROUTE
-    """
+    """Homepage route."""
     return render_template('main/index.html')
 
-@bp.route('/about')
-def about():
-    """
-    ABOUT PAGE ROUTE
-    """
-    return render_template('main/about.html')
 
-@bp.route('/contact')
-def contact():
-    """
-    CONTACT PAGE ROUTE
-    """
-    return render_template('main/contact.html')
+# Disabled: About page route is not used in the frontend.
+# @bp.route('/about')
+# def about():
+#     """About page route."""
+#     return render_template('main/about.html')
+
+
+# Disabled: Contact page route is not used in the frontend.
+# @bp.route('/contact')
+# def contact():
+#     """Contact page route."""
+#     return render_template('main/contact.html')
