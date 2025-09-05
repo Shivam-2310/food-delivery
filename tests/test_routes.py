@@ -1,23 +1,19 @@
-"""
-TESTS FOR APPLICATION ROUTES
-"""
+"""Tests for application routes."""
 
-import unittest
-from app import create_app, db
-from app.models import User, Customer, RestaurantOwner, Restaurant, MenuItem
-from app.models import ROLE_CUSTOMER, ROLE_OWNER
 import json
+import unittest
+
 from flask import url_for
 
+from app import create_app, db
+from app.models import Customer, MenuItem, Restaurant, RestaurantOwner, User
+from app.models import ROLE_CUSTOMER, ROLE_OWNER
+
 class TestRoutes(unittest.TestCase):
-    """
-    TEST CASES FOR APPLICATION ROUTES
-    """
+    """Test cases for application routes."""
     
     def setUp(self):
-        """
-        SET UP TEST ENVIRONMENT
-        """
+        """Set up test environment."""
         self.app = create_app({
             'TESTING': True,
             'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
@@ -29,22 +25,18 @@ class TestRoutes(unittest.TestCase):
         db.create_all()
         self.client = self.app.test_client()
         
-        # CREATE TEST DATA
+        # Create test data.
         self._create_test_data()
         
     def tearDown(self):
-        """
-        CLEAN UP TEST ENVIRONMENT
-        """
+        """Clean up test environment."""
         db.session.remove()
         db.drop_all()
         self.app_context.pop()
     
     def _create_test_data(self):
-        """
-        CREATE TEST USERS AND DATA
-        """
-        # CREATE CUSTOMER USER
+        """Create test users and data."""
+        # Create customer user.
         customer_user = User(username='customer', email='customer@example.com', role=ROLE_CUSTOMER)
         customer_user.set_password('password123')
         customer_user.set_password('password123')
@@ -54,7 +46,7 @@ class TestRoutes(unittest.TestCase):
         customer = Customer(user_id=customer_user.id, name='Test Customer')
         db.session.add(customer)
         
-        # CREATE OWNER USER
+        # Create owner user.
         owner_user = User(username='owner', email='owner@example.com', role=ROLE_OWNER)
         owner_user.set_password('password123')
         owner_user.set_password('password123')
@@ -65,7 +57,7 @@ class TestRoutes(unittest.TestCase):
         db.session.add(owner)
         db.session.flush()
         
-        # CREATE RESTAURANT
+        # Create restaurant.
         restaurant = Restaurant(
             owner_id=owner.id,
             name='Test Restaurant',
@@ -76,7 +68,7 @@ class TestRoutes(unittest.TestCase):
         db.session.add(restaurant)
         db.session.flush()
         
-        # CREATE MENU ITEMS
+        # Create menu items.
         menu_items = [
             MenuItem(
                 restaurant_id=restaurant.id,
@@ -101,9 +93,7 @@ class TestRoutes(unittest.TestCase):
         db.session.commit()
     
     def _login(self, username, password):
-        """
-        HELPER METHOD TO LOG IN
-        """
+        """Helper method to log in."""
         return self.client.post('/auth/login', data={
             'username': username,
             'password': password,
@@ -111,42 +101,32 @@ class TestRoutes(unittest.TestCase):
         }, follow_redirects=True)
     
     def test_index_page(self):
-        """
-        TEST INDEX PAGE
-        """
+        """Test index page."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'ORDER DELICIOUS FOOD ONLINE', response.data)
     
     def test_login_page(self):
-        """
-        TEST LOGIN PAGE LOADS
-        """
+        """Test login page loads."""
         response = self.client.get('/auth/login')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'LOGIN TO JUSTEAT', response.data)
     
     def test_login_success_customer(self):
-        """
-        TEST SUCCESSFUL CUSTOMER LOGIN
-        """
+        """Test successful customer login."""
         response = self._login('customer', 'password123')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'LOGIN SUCCESSFUL', response.data)
         self.assertIn(b'WELCOME, Test Customer', response.data)
     
     def test_login_success_owner(self):
-        """
-        TEST SUCCESSFUL OWNER LOGIN
-        """
+        """Test successful owner login."""
         response = self._login('owner', 'password123')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'LOGIN SUCCESSFUL', response.data)
     
     def test_login_failure(self):
-        """
-        TEST FAILED LOGIN
-        """
+        """Test failed login."""
         response = self.client.post('/auth/login', data={
             'username': 'customer',
             'password': 'wrongpassword',
@@ -156,15 +136,13 @@ class TestRoutes(unittest.TestCase):
         self.assertIn(b'INVALID USERNAME, PASSWORD OR ROLE', response.data)
     
     def test_customer_dashboard_access(self):
-        """
-        TEST CUSTOMER DASHBOARD ACCESS CONTROL
-        """
-        # UNAUTHENTICATED ACCESS
+        """Test customer dashboard access control."""
+        # Unauthenticated access.
         response = self.client.get('/customer/dashboard', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'LOGIN TO JUSTEAT', response.data)
         
-        # AUTHENTICATED ACCESS
+        # Authenticated access.
         self._login('customer', 'password123')
         response = self.client.get('/customer/dashboard')
         self.assertEqual(response.status_code, 200)
@@ -172,38 +150,32 @@ class TestRoutes(unittest.TestCase):
         self.assertIn(b'WELCOME, Test Customer', response.data)
     
     def test_owner_dashboard_access(self):
-        """
-        TEST OWNER DASHBOARD ACCESS CONTROL
-        """
-        # UNAUTHENTICATED ACCESS
+        """Test owner dashboard access control."""
+        # Unauthenticated access.
         response = self.client.get('/owner/dashboard', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'LOGIN TO JUSTEAT', response.data)
         
-        # AUTHENTICATED ACCESS
+        # Authenticated access.
         self._login('owner', 'password123')
         response = self.client.get('/owner/dashboard')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'RESTAURANT OWNER DASHBOARD', response.data)
     
     def test_role_based_access(self):
-        """
-        TEST ROLE-BASED ACCESS CONTROL
-        """
-        # CUSTOMER TRYING TO ACCESS OWNER ROUTES (forbidden; expect 403)
+        """Test role-based access control."""
+        # Customer trying to access owner routes (forbidden; expect 403).
         self._login('customer', 'password123')
         response = self.client.get('/owner/dashboard', follow_redirects=False)
         self.assertEqual(response.status_code, 403)
         
-        # OWNER TRYING TO ACCESS CUSTOMER ROUTES (allowed; expect 200)
+        # Owner trying to access customer routes (allowed; expect 200).
         self._login('owner', 'password123')
         response = self.client.get('/customer/dashboard', follow_redirects=False)
         self.assertEqual(response.status_code, 200)
     
     def test_restaurant_listing(self):
-        """
-        TEST RESTAURANT LISTING
-        """
+        """Test restaurant listing."""
         self._login('customer', 'password123')
         response = self.client.get('/customer/restaurants')
         self.assertEqual(response.status_code, 200)
@@ -211,12 +183,10 @@ class TestRoutes(unittest.TestCase):
         self.assertIn(b'Italian', response.data)
     
     def test_restaurant_detail(self):
-        """
-        TEST RESTAURANT DETAIL PAGE
-        """
+        """Test restaurant detail page."""
         self._login('customer', 'password123')
         
-        # GET RESTAURANT ID
+        # Get restaurant ID.
         restaurant = Restaurant.query.filter_by(name='Test Restaurant').first()
         
         response = self.client.get(f'/customer/restaurant/{restaurant.id}')
@@ -226,15 +196,13 @@ class TestRoutes(unittest.TestCase):
         self.assertIn(b'Pasta', response.data)
     
     def test_logout(self):
-        """
-        TEST LOGOUT FUNCTIONALITY
-        """
+        """Test logout functionality."""
         self._login('customer', 'password123')
         response = self.client.get('/auth/logout', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'YOU HAVE BEEN LOGGED OUT SUCCESSFULLY', response.data)
         
-        # VERIFY DASHBOARD IS NO LONGER ACCESSIBLE
+        # Verify dashboard is no longer accessible.
         response = self.client.get('/customer/dashboard', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'LOGIN TO JUSTEAT', response.data)
