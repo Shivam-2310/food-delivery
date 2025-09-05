@@ -430,9 +430,9 @@
                                                     {% endif %}
                                                 </div>
                                                 <div>
-                                                    <a href="{{ url_for('customer.add_to_cart', item_id=item.id) }}" class="btn btn-sm btn-primary">
+                                                    <button class="btn btn-sm btn-primary add-to-cart" data-item-id="{{ item.id }}" data-item-name="{{ item.name }}" data-item-price="{{ item.price }}">
                                                         <i class="fas fa-plus"></i> ADD TO CART
-                                                    </a>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

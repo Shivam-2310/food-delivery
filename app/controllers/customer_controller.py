@@ -430,7 +430,19 @@ def add_to_cart(item_id):
     
     # CHECK IF CART IS EMPTY OR FROM SAME RESTAURANT
     if session['cart'] and any(MenuItem.query.get(int(id)).restaurant_id != restaurant_id for id in session['cart']):
-        flash("YOU CAN ONLY ORDER FROM ONE RESTAURANT AT A TIME. PLEASE CLEAR YOUR CART FIRST.", "warning")
+        message = "YOU CAN ONLY ORDER FROM ONE RESTAURANT AT A TIME. PLEASE CLEAR YOUR CART FIRST."
+        # If AJAX request, return JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.best == 'application/json':
+            return current_app.response_class(
+                response=json.dumps({
+                    'ok': False,
+                    'message': message,
+                    'cart_count': len(session.get('cart', {}))
+                }),
+                status=400,
+                mimetype='application/json'
+            )
+        flash(message, "warning")
         return redirect(url_for('customer.restaurant_detail', id=restaurant_id))
     
     # ADD OR UPDATE CART
@@ -441,7 +453,22 @@ def add_to_cart(item_id):
     
     session.modified = True
     
-    flash(f"'{menu_item.name}' ADDED TO YOUR CART.", "success")
+    # For AJAX requests, return JSON payload instead of redirect
+    success_message = f"'{menu_item.name}' ADDED TO YOUR CART."
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.best == 'application/json':
+        return current_app.response_class(
+            response=json.dumps({
+                'ok': True,
+                'message': success_message,
+                'cart_count': len(session.get('cart', {})),
+                'restaurant_id': restaurant_id,
+                'item_id': item_id,
+                'quantity': session['cart'][str(item_id)]
+            }),
+            status=200,
+            mimetype='application/json'
+        )
+    flash(success_message, "success")
     return redirect(url_for('customer.restaurant_detail', id=restaurant_id))
 
 @bp.route('/update_cart_item/<int:item_id>', methods=['POST'])

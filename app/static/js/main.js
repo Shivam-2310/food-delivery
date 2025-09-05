@@ -107,27 +107,71 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // ADD TO CART BUTTON HANDLER FOR FEATURED ITEMS
+    // ADD TO CART BUTTON HANDLER (AJAX)
+    function updateCartBadge(count) {
+        var badge = document.getElementById('cart-badge');
+        if (!badge) return;
+        if (count && count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.textContent = '';
+            badge.style.display = 'none';
+        }
+    }
+
+    function showInlineAlert(container, message, type) {
+        try {
+            var alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-' + (type || 'success') + ' alert-dismissible fade show mt-2';
+            alertDiv.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            container.appendChild(alertDiv);
+            setTimeout(function(){
+                var bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }, 3000);
+        } catch (e) {
+            console.log(message);
+        }
+    }
+
     document.querySelectorAll('.add-to-cart').forEach(function(button) {
         button.addEventListener('click', function(event) {
             event.preventDefault();
-            
+
             var itemId = this.getAttribute('data-item-id');
-            var itemName = this.getAttribute('data-item-name');
-            var itemPrice = this.getAttribute('data-item-price');
-            
-            if (!itemId) {
-                console.error('Item ID not found');
-                return;
-            }
-            
-            // GET QUANTITY FROM THE QUANTITY INPUT (DEFAULT TO 1 IF NOT FOUND)
-            var quantityInput = this.closest('.card-body').querySelector('.quantity-input');
+            if (!itemId) return;
+
+            var quantityInput = (this.closest('.card-body') || this.closest('.card')).querySelector('.quantity-input');
             var quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
-            
-            // REDIRECT TO ADD TO CART ROUTE
-            var addToCartUrl = '/customer/add_to_cart/' + itemId + '?quantity=' + quantity;
-            window.location.href = addToCartUrl;
+
+            var url = '/customer/add_to_cart/' + encodeURIComponent(itemId) + '?quantity=' + encodeURIComponent(quantity);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            }).then(function(res){
+                return res.json().then(function(data){
+                    return { status: res.status, data: data };
+                });
+            }).then(function(result){
+                if (result.status >= 200 && result.status < 300 && result.data && result.data.ok) {
+                    updateCartBadge(result.data.cart_count);
+                    var container = button.closest('.card-body') || document.body;
+                    showInlineAlert(container, result.data.message, 'success');
+                } else {
+                    var message = (result && result.data && result.data.message) ? result.data.message : 'FAILED TO ADD ITEM TO CART.';
+                    var container = button.closest('.card-body') || document.body;
+                    showInlineAlert(container, message, 'warning');
+                }
+            }).catch(function(err){
+                var container = button.closest('.card-body') || document.body;
+                showInlineAlert(container, 'NETWORK ERROR. PLEASE TRY AGAIN.', 'danger');
+            });
         });
     });
 });
