@@ -1,20 +1,49 @@
-"""
-CUSTOMER CONTROLLER FOR CUSTOMER FEATURES
-"""
+"""Customer controller for customer features."""
 
-import logging
 import json
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, abort, session
+import logging
+
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    request,
+    flash,
+    current_app,
+    abort,
+    session,
+)
 from flask_login import login_required, current_user
-from sqlalchemy import or_, and_
+from sqlalchemy import and_, or_
+
 from app import db
-from app.models import User, Customer, Restaurant, MenuItem, Order, OrderItem, Feedback
-from app.models.dish_rating import DishRating
+from app.forms.customer_forms import (
+    DishRatingForm,
+    OrderFeedbackForm,
+    PreferencesForm,
+    ProfileUpdateForm,
+    SearchForm,
+)
+from app.models import (
+    Feedback,
+    MenuItem,
+    Order,
+    OrderItem,
+    Restaurant,
+    User,
+)
 from app.models import STATUS_COMPLETED
-from app.models import STATUS_PENDING, STATUS_CONFIRMED, STATUS_PREPARING, STATUS_READY, STATUS_COMPLETED
-from app.forms.customer_forms import ProfileUpdateForm, PreferencesForm, OrderFeedbackForm, SearchForm, DishRatingForm
-from app.utils.decorators import customer_required
+from app.models import (
+    STATUS_PENDING,
+    STATUS_CONFIRMED,
+    STATUS_PREPARING,
+    STATUS_READY,
+    STATUS_COMPLETED,
+)
+from app.models.dish_rating import DishRating
 from app.utils.constants import CUISINE_OPTIONS
+from app.utils.decorators import customer_required
 
 bp = Blueprint('customer', __name__, url_prefix='/customer')
 logger = logging.getLogger(__name__)
@@ -23,22 +52,20 @@ logger = logging.getLogger(__name__)
 @login_required
 @customer_required
 def dashboard():
-    """
-    CUSTOMER DASHBOARD ROUTE
-    """
-    # GET RECENT ORDERS
+    """Customer dashboard route."""
+    # Get recent orders.
     recent_orders = Order.query.filter_by(customer_id=current_user.customer_profile.id)\
         .order_by(Order.created_at.desc()).limit(5).all()
-    
-    # GET FAVORITE RESTAURANTS
+
+    # Get favorite restaurants.
     favorites = []
     customer_prefs = current_user.customer_profile.get_preferences()
     if customer_prefs and 'favorite_restaurants' in customer_prefs:
         favorites = Restaurant.query.filter(Restaurant.id.in_(customer_prefs['favorite_restaurants'])).all()
-    
-    # GET RECOMMENDED RESTAURANTS BASED ON PREFERENCES AND HISTORY
+
+    # Get recommended restaurants based on preferences and history.
     recommended = get_recommendations(current_user.customer_profile)
-    
+
     return render_template('customer/dashboard.html', 
                            recent_orders=recent_orders,
                            favorites=favorites,
@@ -48,9 +75,7 @@ def dashboard():
 @login_required
 @customer_required
 def profile():
-    """
-    CUSTOMER PROFILE ROUTE
-    """
+    """Customer profile route."""
     form = ProfileUpdateForm()
     
     if form.validate_on_submit():
@@ -78,17 +103,15 @@ def profile():
 @login_required
 @customer_required
 def preferences():
-    """
-    CUSTOMER PREFERENCES ROUTE
-    """
-    # GET ALL CUISINE TYPES FROM DB FOR THE FORM CHOICES (supports multi-cuisine)
+    """Customer preferences route."""
+    # Get all cuisine types from DB for the form choices (supports multi-cuisine).
     cuisine_choices = [(c, c) for c in CUISINE_OPTIONS]
     
     form = PreferencesForm()
     form.favorite_cuisines.choices = cuisine_choices
     
     if form.validate_on_submit():
-        # UPDATE PREFERENCES
+        # Update preferences.
         prefs = current_user.customer_profile.get_preferences()
         if not prefs:
             prefs = {}
@@ -96,7 +119,7 @@ def preferences():
         prefs['favorite_cuisines'] = form.favorite_cuisines.data
         current_user.customer_profile.set_preferences(prefs)
         
-        # UPDATE DIETARY RESTRICTIONS
+        # Update dietary restrictions.
         current_user.customer_profile.set_dietary_restrictions(form.dietary_restrictions.data)
         
         db.session.commit()
@@ -105,15 +128,15 @@ def preferences():
         return redirect(url_for('customer.preferences'))
     
     elif request.method == 'GET':
-        # POPULATE FORM WITH EXISTING PREFERENCES
+        # Populate form with existing preferences.
         prefs = current_user.customer_profile.get_preferences()
         if prefs and 'favorite_cuisines' in prefs:
             form.favorite_cuisines.data = prefs['favorite_cuisines']
         
-        # POPULATE FORM WITH EXISTING DIETARY RESTRICTIONS
+        # Populate form with existing dietary restrictions.
         form.dietary_restrictions.data = current_user.customer_profile.get_dietary_restrictions()
     
-    # GET FAVORITE RESTAURANTS FOR DISPLAY
+    # Get favorite restaurants for display.
     customer_prefs = current_user.customer_profile.get_preferences()
     favorites = []
     if customer_prefs and 'favorite_restaurants' in customer_prefs:
@@ -125,15 +148,13 @@ def preferences():
 @login_required
 @customer_required
 def restaurants():
-    """
-    RESTAURANTS LISTING ROUTE
-    """
+    """Restaurants listing route."""
     search_form = SearchForm()
     
-    # GET ALL CUISINE TYPES FOR FILTER (multi-select)
+    # Get all cuisine types for filter (multi-select).
     search_form.cuisines.choices = [(c, c) for c in CUISINE_OPTIONS]
     
-    # GET QUERY PARAMETERS
+    # Get query parameters.
     query = request.args.get('query', '')
     location = request.args.get('location', '')
     cuisines_selected = request.args.getlist('cuisines')
@@ -144,7 +165,7 @@ def restaurants():
     # Pre-select dietary preferences checkbox if it was checked
     search_form.apply_dietary_preferences.data = apply_dietary_preferences
     
-    # BUILD QUERY
+    # Build query.
     restaurant_query = Restaurant.query
     
     if query:
@@ -153,26 +174,26 @@ def restaurants():
     if location:
         restaurant_query = restaurant_query.filter(Restaurant.location.ilike(f'%{location}%'))
     
-    # We will filter by cuisines after fetching, due to JSON storage
+    # We will filter by cuisines after fetching, due to JSON storage.
     
-    # GET RESTAURANTS
+    # Get restaurants.
     restaurants = restaurant_query.all()
-    # Filter by selected cuisines (match any)
+    # Filter by selected cuisines (match any).
     if cuisines_selected:
         sel = set([c for c in cuisines_selected if c])
         if sel:
             restaurants = [r for r in restaurants if sel.intersection(set(r.get_cuisines()))]
     
-    # APPLY DIETARY FILTERS WHEN USER CHECKS THE PREFERENCE BOX
+    # Apply dietary filters when user checks the preference box.
     if apply_dietary_preferences:
         customer_dietary_restrictions = current_user.customer_profile.get_dietary_restrictions()
         if customer_dietary_restrictions:
-            # Filter restaurants that have menu items matching user's dietary preferences
+            # Filter restaurants that have menu items matching user's dietary preferences.
             filtered_restaurants = []
             for restaurant in restaurants:
                 has_matching_items = False
                 
-                # Check if restaurant has items matching any of the user's dietary preferences
+                # Check if restaurant has items matching any of the user's dietary preferences.
                 for item in restaurant.menu_items:
                     if 'vegetarian' in customer_dietary_restrictions and item.is_vegetarian:
                         has_matching_items = True
@@ -189,7 +210,7 @@ def restaurants():
             
             restaurants = filtered_restaurants
     
-    # ADD FAVORITE STATUS TO EACH RESTAURANT
+    # Add favorite status to each restaurant.
     for restaurant in restaurants:
         restaurant.is_favorite = current_user.customer_profile.is_favorite(restaurant.id)
     
@@ -205,43 +226,41 @@ def restaurants():
 @login_required
 @customer_required
 def restaurant_detail(id):
-    """
-    RESTAURANT DETAIL ROUTE
-    """
+    """Restaurant detail route."""
     restaurant = Restaurant.query.get_or_404(id)
     
-    # GET FILTER PARAMETERS
+    # Get filter parameters.
     search_query = request.args.get('search', '').strip()
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     category_filter = request.args.get('category', '')
     apply_dietary_preferences = request.args.get('apply_dietary_preferences', '') in ['on', 'y', 'yes', 'true']
     
-    # GET ALL MENU ITEMS FOR THIS RESTAURANT
+    # Get all menu items for this restaurant.
     menu_items_query = MenuItem.query.filter_by(restaurant_id=restaurant.id)
     
-    # APPLY SEARCH FILTER
+    # Apply search filter.
     if search_query:
         menu_items_query = menu_items_query.filter(
             MenuItem.name.ilike(f'%{search_query}%') |
             MenuItem.description.ilike(f'%{search_query}%')
         )
     
-    # APPLY PRICE FILTER
+    # Apply price filter.
     if min_price is not None:
         menu_items_query = menu_items_query.filter(MenuItem.price >= min_price)
     if max_price is not None:
         menu_items_query = menu_items_query.filter(MenuItem.price <= max_price)
     
-    # APPLY CATEGORY FILTER
+    # Apply category filter.
     if category_filter:
         menu_items_query = menu_items_query.filter(MenuItem.category == category_filter)
     
-    # APPLY DIETARY FILTERS WHEN USER CHECKS THE PREFERENCE BOX
+    # Apply dietary filters when user checks the preference box.
     if apply_dietary_preferences:
         customer_dietary_restrictions = current_user.customer_profile.get_dietary_restrictions()
         if customer_dietary_restrictions:
-            # Build filter conditions based on user's dietary preferences
+            # Build filter conditions based on user's dietary preferences.
             filter_conditions = []
             
             if 'vegetarian' in customer_dietary_restrictions:
@@ -251,26 +270,26 @@ def restaurant_detail(id):
             if 'guilt_free' in customer_dietary_restrictions:
                 filter_conditions.append(MenuItem.is_guilt_free == True)
             
-            # Apply the filters - show items that match ANY of the user's dietary preferences
+            # Apply the filters: show items that match any of the user's dietary preferences.
             if filter_conditions:
                 from sqlalchemy import or_
                 menu_items_query = menu_items_query.filter(or_(*filter_conditions))
     
-    # GET FILTERED MENU ITEMS
+    # Get filtered menu items.
     filtered_menu_items = menu_items_query.all()
     
-    # GROUP BY CATEGORY
+    # Group by category.
     menu_by_category = {}
     for item in filtered_menu_items:
         if item.category not in menu_by_category:
             menu_by_category[item.category] = []
         menu_by_category[item.category].append(item)
     
-    # GET ALL CATEGORIES FOR FILTER DROPDOWN
+    # Get all categories for filter dropdown.
     all_categories = db.session.query(MenuItem.category).filter_by(restaurant_id=restaurant.id).distinct().all()
     all_categories = [cat[0] for cat in all_categories if cat[0]]
     
-    # GET PRICE RANGE FOR SLIDER
+    # Get price range for slider.
     price_range = db.session.query(
         db.func.min(MenuItem.price),
         db.func.max(MenuItem.price)
@@ -279,21 +298,21 @@ def restaurant_detail(id):
     min_menu_price = price_range[0] if price_range[0] else 0
     max_menu_price = price_range[1] if price_range[1] else 1000
     
-    # CHECK IF RESTAURANT IS IN FAVORITES
+    # Check if restaurant is in favorites.
     is_favorite = current_user.customer_profile.is_favorite(restaurant.id)
     
-    # GET ORDER FEEDBACK FOR THIS RESTAURANT
+    # Get order feedback for this restaurant.
     from app.models.feedback import Feedback
     feedback_list = Feedback.query.filter_by(restaurant_id=restaurant.id).order_by(Feedback.created_at.desc()).all()
     
-    # CHECK IF USER HAS ORDERED FROM THIS RESTAURANT
+    # Check if user has ordered from this restaurant.
     has_ordered = Order.query.filter_by(
         customer_id=current_user.customer_profile.id,
         restaurant_id=restaurant.id,
-        status=STATUS_COMPLETED  # Only completed orders count
+        status=STATUS_COMPLETED  # Only completed orders count.
     ).first() is not None
     
-    # GET RECOMMENDED DISHES FOR THIS RESTAURANT
+    # Get recommended dishes for this restaurant.
     recommended_dishes = get_recommended_dishes(current_user.customer_profile, restaurant.id)
     
     return render_template('customer/restaurant_detail.html', 
@@ -316,9 +335,7 @@ def restaurant_detail(id):
 @login_required
 @customer_required
 def toggle_favorite(restaurant_id):
-    """
-    TOGGLE FAVORITE RESTAURANT ROUTE
-    """
+    """Toggle favorite restaurant route."""
     restaurant = Restaurant.query.get_or_404(restaurant_id)
     
     if current_user.customer_profile.is_favorite(restaurant_id):
@@ -335,10 +352,8 @@ def toggle_favorite(restaurant_id):
 @login_required
 @customer_required
 def cart():
-    """
-    SHOPPING CART ROUTE
-    """
-    # GET CART FROM SESSION OR INITIALIZE
+    """Shopping cart route."""
+    # Get cart from session or initialize.
     cart = session.get('cart', {})
     cart_items = []
     restaurant_name = None
@@ -346,7 +361,7 @@ def cart():
     total = 0
     
     if cart:
-        # GET MENU ITEMS IN CART
+        # Get menu items in cart.
         item_ids = [int(id) for id in cart.keys()]
         menu_items = MenuItem.query.filter(MenuItem.id.in_(item_ids)).all()
         
@@ -369,12 +384,12 @@ def cart():
                 restaurant_name = restaurant.name
     
     if request.method == 'POST':
-        # PLACE ORDER
+        # Place order.
         if not cart_items:
             flash("YOUR CART IS EMPTY.", "warning")
             return redirect(url_for('customer.cart'))
         
-        # CREATE ORDER
+        # Create order.
         order = Order(
             customer_id=current_user.customer_profile.id,
             restaurant_id=restaurant_id,
@@ -382,9 +397,9 @@ def cart():
             total_amount=total
         )
         db.session.add(order)
-        db.session.flush()  # TO GET ORDER ID
+        db.session.flush()  # To get order ID.
         
-        # CREATE ORDER ITEMS
+        # Create order items.
         for item in cart_items:
             menu_item = MenuItem.query.get(item['id'])
             order_item = OrderItem(
@@ -395,12 +410,12 @@ def cart():
             )
             db.session.add(order_item)
             
-            # UPDATE TIMES ORDERED TODAY COUNT WITH AUTOMATIC DAILY RESET
+            # Update times ordered today count with automatic daily reset.
             menu_item.increment_daily_order_count(item['quantity'])
         
         db.session.commit()
         
-        # CLEAR CART
+        # Clear cart.
         session['cart'] = {}
         
         logger.info(f"Order #{order.id} placed successfully by {current_user.username}")
@@ -417,21 +432,19 @@ def cart():
 @login_required
 @customer_required
 def add_to_cart(item_id):
-    """
-    ADD ITEM TO CART ROUTE
-    """
+    """Add item to cart route."""
     menu_item = MenuItem.query.get_or_404(item_id)
     restaurant_id = menu_item.restaurant_id
     quantity = int(request.args.get('quantity', 1))
     
-    # INITIALIZE CART IF NOT PRESENT
+    # Initialize cart if not present.
     if 'cart' not in session:
         session['cart'] = {}
     
-    # CHECK IF CART IS EMPTY OR FROM SAME RESTAURANT
+    # Check if cart is empty or from the same restaurant.
     if session['cart'] and any(MenuItem.query.get(int(id)).restaurant_id != restaurant_id for id in session['cart']):
         message = "YOU CAN ONLY ORDER FROM ONE RESTAURANT AT A TIME. PLEASE CLEAR YOUR CART FIRST."
-        # If AJAX request, return JSON
+        # If AJAX request, return JSON.
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.best == 'application/json':
             return current_app.response_class(
                 response=json.dumps({
@@ -445,7 +458,7 @@ def add_to_cart(item_id):
         flash(message, "warning")
         return redirect(url_for('customer.restaurant_detail', id=restaurant_id))
     
-    # ADD OR UPDATE CART
+    # Add or update cart.
     if str(item_id) in session['cart']:
         session['cart'][str(item_id)] = session['cart'][str(item_id)] + quantity
     else:
@@ -453,7 +466,7 @@ def add_to_cart(item_id):
     
     session.modified = True
     
-    # For AJAX requests, return JSON payload instead of redirect
+    # For AJAX requests, return JSON payload instead of redirect.
     success_message = f"'{menu_item.name}' ADDED TO YOUR CART."
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.best == 'application/json':
         return current_app.response_class(
@@ -475,12 +488,10 @@ def add_to_cart(item_id):
 @login_required
 @customer_required
 def update_cart_item(item_id):
-    """
-    UPDATE CART ITEM QUANTITY ROUTE
-    """
+    """Update cart item quantity route."""
     quantity = int(request.form.get('quantity', 1))
     
-    # UPDATE QUANTITY OR REMOVE IF ZERO
+    # Update quantity or remove if zero.
     if quantity > 0:
         session['cart'][str(item_id)] = quantity
     else:
@@ -495,9 +506,7 @@ def update_cart_item(item_id):
 @login_required
 @customer_required
 def clear_cart():
-    """
-    CLEAR CART ROUTE
-    """
+    """Clear cart route."""
     session['cart'] = {}
     session.modified = True
     
@@ -508,21 +517,19 @@ def clear_cart():
 @login_required
 @customer_required
 def orders():
-    """
-    ORDER HISTORY ROUTE
-    """
-    # GET QUERY PARAMETERS FOR SEARCH/FILTER
+    """Order history route."""
+    # Get query parameters for search/filter.
     search_query = request.args.get('search', '')
     status_filter = request.args.get('status', '')
     
-    # BUILD QUERY
+    # Build query.
     orders_query = Order.query.filter_by(customer_id=current_user.customer_profile.id)
     
     if status_filter:
         orders_query = orders_query.filter(Order.status == status_filter)
     
     if search_query:
-        # SEARCH BY ORDER ID OR RESTAURANT NAME
+        # Search by order ID or restaurant name.
         orders_query = orders_query.join(Restaurant).filter(
             or_(
                 Order.id.ilike(f'%{search_query}%'),
@@ -530,13 +537,13 @@ def orders():
             )
         )
     
-    # GET ORDERS SORTED BY DATE (NEWEST FIRST)
+    # Get orders sorted by date (newest first).
     orders = orders_query.order_by(Order.created_at.desc()).all()
     
-    # PRE-LOAD FEEDBACK FOR EACH ORDER TO AVOID TEMPLATE ERRORS
+    # Pre-load feedback for each order to avoid template errors.
     for order in orders:
         if order.feedback.count() > 0:
-            # Force loading of feedback
+            # Force loading of feedback.
             _ = list(order.feedback)
     
     return render_template('customer/orders.html', 
@@ -548,39 +555,37 @@ def orders():
 @login_required
 @customer_required
 def order_detail(id):
-    """
-    ORDER DETAIL ROUTE WITH FEEDBACK SUBMISSION FOR COMPLETED ORDERS
-    """
+    """Order detail route with feedback submission for completed orders."""
     order = Order.query.get_or_404(id)
     
-    # ENSURE ORDER BELONGS TO CURRENT USER
+    # Ensure order belongs to current user.
     if order.customer_id != current_user.customer_profile.id:
         abort(403)
     
-    # GET EXISTING FEEDBACK IF ANY
+    # Get existing feedback if any.
     existing_feedback = Feedback.query.filter_by(order_id=order.id).first()
     
-    # GET EXISTING DISH RATINGS IF ANY
+    # Get existing dish ratings if any.
     existing_dish_ratings = DishRating.query.filter_by(order_id=order.id).all()
     existing_dish_ratings_dict = {rating.menu_item_id: rating.rating for rating in existing_dish_ratings}
     
-    # CHECK IF ORDER IS COMPLETED AND CAN RECEIVE FEEDBACK
+    # Check if order is completed and can receive feedback.
     can_give_feedback = order.status == STATUS_COMPLETED and not existing_feedback
     can_rate_dishes = order.status == STATUS_COMPLETED and len(existing_dish_ratings) == 0
     
-    # ALWAYS CREATE A FEEDBACK FORM
+    # Always create a feedback form.
     feedback_form = OrderFeedbackForm()
     
-    # CREATE DISH RATING FORM
+    # Create dish rating form.
     dish_rating_form = DishRatingForm(order_items=order.items)
     
-    # HANDLE FEEDBACK SUBMISSION IF CAN GIVE FEEDBACK
+    # Handle feedback submission if can give feedback.
     if can_give_feedback:
         
         if request.method == 'POST':
-            # Check if this is dish rating submission
+            # Check if this is dish rating submission.
             if 'dish_rating_submit' in request.form:
-                # Handle dish ratings
+                # Handle dish ratings.
                 dish_ratings_submitted = []
                 for item in order.items:
                     rating_key = f'dish_rating_{item.menu_item_id}'
@@ -598,13 +603,13 @@ def order_detail(id):
                         'rating': rating_value
                     })
                 
-                # Check if dish ratings already exist
+                # Check if dish ratings already exist.
                 existing_dish_ratings_check = DishRating.query.filter_by(order_id=order.id).first()
                 if existing_dish_ratings_check:
                     flash("Dish ratings have already been submitted for this order.", "info")
                     return redirect(url_for('customer.order_detail', id=order.id))
                 
-                # Save dish ratings
+                # Save dish ratings.
                 for dish_rating_data in dish_ratings_submitted:
                     dish_rating = DishRating(
                         order_id=order.id,
@@ -620,21 +625,21 @@ def order_detail(id):
                 return redirect(url_for('customer.order_detail', id=order.id))
             
             else:
-                # Handle order feedback
+                # Handle order feedback.
                 rating = request.form.get('rating', '5')
                 message = request.form.get('message', '')
                 
                 try:
                     rating = int(rating)
                     if rating < 1 or rating > 5:
-                        rating = 5  # Default to 5 if out of range
+                        rating = 5  # Default to 5 if out of range.
                 except (ValueError, TypeError):
-                    rating = 5  # Default to 5 if conversion error
+                    rating = 5  # Default to 5 if conversion error.
                 
-                # Message is optional, set to empty string if not provided
+                # Message is optional, set to empty string if not provided.
                 message = message.strip() if message else ""
                     
-                # Double-check if feedback wasn't submitted by another request while this one was processing
+                # Double-check if feedback wasn't submitted by another request while this one was processing.
                 check_existing = Feedback.query.filter_by(order_id=order.id).first()
                 if check_existing:
                     flash("Feedback has already been submitted for this order.", "info")
@@ -663,29 +668,27 @@ def order_detail(id):
                           existing_feedback=existing_feedback,
                           existing_dish_ratings=existing_dish_ratings_dict)
 
-# Review route removed - now using only order-specific feedback
+# Review route removed. Now using only order-specific feedback.
 
 
 def get_recommendations(customer):
-    """
-    GET RECOMMENDED RESTAURANTS BASED ON CUSTOMER PREFERENCES AND HISTORY
-    """
+    """Get recommended restaurants based on customer preferences and history."""
     recommendations = []
     
-    # GET CUSTOMER PREFERENCES
+    # Get customer preferences.
     preferences = customer.get_preferences()
     favorite_cuisines = preferences.get('favorite_cuisines', []) if preferences else []
     dietary_restrictions = customer.get_dietary_restrictions()
     
-    # GET PREVIOUSLY ORDERED RESTAURANTS
+    # Get previously ordered restaurants.
     ordered_restaurant_ids = db.session.query(Restaurant.id).join(Order).filter(
         Order.customer_id == customer.id
     ).distinct().all()
     ordered_restaurant_ids = [r[0] for r in ordered_restaurant_ids]
     
-    # FIND RESTAURANTS THAT MATCH CUSTOMER PREFERENCES (match-any on cuisines list)
+    # Find restaurants that match customer preferences (match-any on cuisines list).
     if favorite_cuisines:
-        # Start with candidates not already ordered from
+        # Start with candidates not already ordered from.
         candidate_query = Restaurant.query
         if ordered_restaurant_ids:
             candidate_query = candidate_query.filter(~Restaurant.id.in_(ordered_restaurant_ids))
@@ -694,7 +697,7 @@ def get_recommendations(customer):
         cuisine_recommendations = [r for r in candidates if favorite_set.intersection(set(r.get_cuisines()))]
         recommendations.extend(cuisine_recommendations)
     
-    # FIND RESTAURANTS WITH ITEMS MATCHING DIETARY PREFERENCES (for recommendations only)
+    # Find restaurants with items matching dietary preferences (for recommendations only).
     if dietary_restrictions:
         from sqlalchemy import or_
         dietary_conditions = []
@@ -714,37 +717,37 @@ def get_recommendations(customer):
             ).distinct().all()
             recommendations.extend(dietary_restaurants)
     
-    # LIMIT TO 5 RECOMMENDATIONS
+    # Limit to 5 recommendations.
     return recommendations[:5]
 
 def get_recommended_dishes(customer, restaurant_id):
+    """Get recommended dishes based on preferences and order history.
+
+    Returns top 3 dishes the customer hasn't ordered before, sorted by rating.
     """
-    GET RECOMMENDED DISHES BASED ON CUSTOMER PREFERENCES AND ORDER HISTORY
-    Returns top 3 dishes that customer hasn't ordered before, sorted by rating
-    """
-    # GET CUSTOMER PREFERENCES
+    # Get customer preferences.
     preferences = customer.get_preferences()
     favorite_cuisines = preferences.get('favorite_cuisines', []) if preferences else []
     dietary_restrictions = customer.get_dietary_restrictions()
     
-    # GET PREVIOUSLY ORDERED MENU ITEMS BY THIS CUSTOMER
+    # Get previously ordered menu items by this customer.
     ordered_menu_item_ids = db.session.query(OrderItem.menu_item_id).join(Order).filter(
         Order.customer_id == customer.id,
         Order.status == STATUS_COMPLETED
     ).distinct().all()
     ordered_menu_item_ids = [item[0] for item in ordered_menu_item_ids]
     
-    # BUILD QUERY FOR RECOMMENDED DISHES
+    # Build query for recommended dishes.
     from sqlalchemy import func, or_
     
-    # Start with dishes from this restaurant that customer hasn't ordered
+    # Start with dishes from this restaurant that customer hasn't ordered.
     recommended_query = MenuItem.query.filter_by(restaurant_id=restaurant_id)
     
-    # Exclude previously ordered items
+    # Exclude previously ordered items.
     if ordered_menu_item_ids:
         recommended_query = recommended_query.filter(~MenuItem.id.in_(ordered_menu_item_ids))
     
-    # Apply dietary restrictions if user has them
+    # Apply dietary restrictions if user has them.
     if dietary_restrictions:
         dietary_conditions = []
         
@@ -758,8 +761,8 @@ def get_recommended_dishes(customer, restaurant_id):
         if dietary_conditions:
             recommended_query = recommended_query.filter(or_(*dietary_conditions))
     
-    # Get dishes with ratings, ordered by average rating (highest first)
-    # Only include dishes that have at least one rating
+    # Get dishes with ratings, ordered by average rating (highest first).
+    # Only include dishes that have at least one rating.
     recommended_dishes = recommended_query.join(DishRating).group_by(
         MenuItem.id
     ).order_by(
