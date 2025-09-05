@@ -110,14 +110,14 @@ class TestRoutes(unittest.TestCase):
         """Test login page loads."""
         response = self.client.get('/auth/login')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'LOGIN TO JUSTEAT', response.data)
+        self.assertIn(b'Sign in to your account', response.data)
     
     def test_login_success_customer(self):
         """Test successful customer login."""
         response = self._login('customer', 'password123')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'LOGIN SUCCESSFUL', response.data)
-        self.assertIn(b'WELCOME, Test Customer', response.data)
+        self.assertIn(b'Welcome back, Test Customer!', response.data)
     
     def test_login_success_owner(self):
         """Test successful owner login."""
@@ -140,27 +140,27 @@ class TestRoutes(unittest.TestCase):
         # Unauthenticated access.
         response = self.client.get('/customer/dashboard', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'LOGIN TO JUSTEAT', response.data)
+        self.assertIn(b'Sign in to your account', response.data)
         
         # Authenticated access.
         self._login('customer', 'password123')
         response = self.client.get('/customer/dashboard')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'WELCOME, Test Customer', response.data)
-        self.assertIn(b'WELCOME, Test Customer', response.data)
+        self.assertIn(b'Welcome back, Test Customer!', response.data)
+        self.assertIn(b'Welcome back, Test Customer!', response.data)
     
     def test_owner_dashboard_access(self):
         """Test owner dashboard access control."""
         # Unauthenticated access.
         response = self.client.get('/owner/dashboard', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'LOGIN TO JUSTEAT', response.data)
+        self.assertIn(b'Sign in to your account', response.data)
         
         # Authenticated access.
         self._login('owner', 'password123')
         response = self.client.get('/owner/dashboard')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'RESTAURANT OWNER DASHBOARD', response.data)
+        self.assertIn(b'Restaurant Owner Dashboard', response.data)
     
     def test_role_based_access(self):
         """Test role-based access control."""
@@ -205,7 +205,7 @@ class TestRoutes(unittest.TestCase):
         # Verify dashboard is no longer accessible.
         response = self.client.get('/customer/dashboard', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'LOGIN TO JUSTEAT', response.data)
+        self.assertIn(b'Sign in to your account', response.data)
 
 if __name__ == '__main__':
     unittest.main()
