@@ -438,15 +438,3 @@ flowchart LR
     class L,M,N,O,Q,R,S special
 ```
 
-These enhanced diagrams feature:
-
-✅ **High Contrast Colors**: Dark backgrounds with white text for excellent readability
-✅ **Professional Icons**: Emojis and symbols for visual clarity
-✅ **Bold Typography**: Enhanced font weights for better visibility
-✅ **Clear Labels**: Descriptive text with context
-✅ **Logical Grouping**: Related elements grouped together
-✅ **Enhanced Relationships**: Clear connection labels
-✅ **Status Indicators**: Visual feedback for different states
-✅ **Comprehensive Coverage**: All major workflows included
-
-You can copy any of these enhanced diagrams directly into Mermaid Live Editor or any Mermaid-compatible tool for professional, easy-to-read visualizations! 🚀
